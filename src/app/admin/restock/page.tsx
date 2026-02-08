@@ -15,13 +15,22 @@ export default function RestockPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const vol = Number(volume);
+        const cost = Number(price);
+
+        if (vol <= 0 || cost <= 0) {
+            alert("Volume dan Harga harus lebih dari 0!");
+            return;
+        }
+
         setLoading(true);
 
         try {
             await StorageService.addInventoryLog({
                 type: 'IN',
-                volume: Number(volume),
-                costPerLiter: Number(price),
+                volume: vol,
+                costPerLiter: cost,
                 notes: 'Restock manual via Admin',
             });
             router.push('/admin');

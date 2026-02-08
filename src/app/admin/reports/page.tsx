@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Navbar from '../../../components/Navbar';
-import { ArrowLeft, Download, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Download, RefreshCw, FileSpreadsheet, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { StorageService, TransactionRecord } from '../../../services/storage';
 import { exportToExcel } from '../../../lib/export';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ReportsPage() {
     const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
     const [summary, setSummary] = useState({ totalMoney: 0, totalLiter: 0, totalProfit: 0 });
+    const [chartData, setChartData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
@@ -28,6 +30,22 @@ export default function ReportsPage() {
                 { totalMoney: 0, totalLiter: 0, totalProfit: 0 }
             );
             setSummary(sum);
+
+            // Prepare Chart Data (Group by Date)
+            const grouped = data.reduce((acc: any, curr) => {
+                const date = new Date(curr.timestamp).toLocaleDateString('id-ID'); // DD/MM/YYYY
+                if (!acc[date]) {
+                    acc[date] = { date, sales: 0, profit: 0 };
+                }
+                acc[date].sales += curr.nominal;
+                acc[date].profit += curr.profit;
+                return acc;
+            }, {});
+
+            // Convert to array and reverse (oldest first) for chart
+            const chart = Object.values(grouped).reverse();
+            setChartData(chart);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -43,13 +61,26 @@ export default function ReportsPage() {
         exportToExcel(transactions);
     };
 
+    const handleDelete = async (id: string, liter: number, nominal: number) => {
+        if (confirm(`Yakin ingin MENGHAPUS transaksi Rp ${nominal.toLocaleString()}?\n\nStok akan dikembalikan sebanyak ${liter} Liter.`)) {
+            try {
+                await StorageService.deleteTransaction(id, liter, nominal);
+                alert('Transaksi Dihapus & Stok Dikembalikan.');
+                fetchData(); // Refresh data
+            } catch (error) {
+                console.error(error);
+                alert('Gagal menghapus transaksi.');
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50">
             <Navbar />
 
             <main className="container mx-auto p-4 md:p-8">
                 <header className="mb-8">
-                    <Link href="/admin" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-4 transition">
+                    <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-4 transition">
                         <ArrowLeft size={20} />
                         Kembali ke Dashboard
                     </Link>
@@ -90,6 +121,35 @@ export default function ReportsPage() {
                     </div>
                 </div>
 
+                {/* --- Sales Chart --- */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 h-80">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">Grafik Penjualan</h3>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData}>
+                            <defs>
+                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `Rp${val / 1000}k`} />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', border: 'none' }}
+                                itemStyle={{ color: '#1e293b' }}
+                                formatter={(val: number) => `Rp ${val.toLocaleString()}`}
+                            />
+                            <Area type="monotone" dataKey="sales" stroke="#3b82f6" fillOpacity={1} fill="url(#colorSales)" name="Omzet" strokeWidth={2} />
+                            <Area type="monotone" dataKey="profit" stroke="#22c55e" fillOpacity={1} fill="url(#colorProfit)" name="Profit" strokeWidth={2} />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+
                 {/* --- Transaction Table --- */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
@@ -101,12 +161,13 @@ export default function ReportsPage() {
                                     <th className="p-4 font-semibold text-slate-600 text-sm">Volume</th>
                                     <th className="p-4 font-semibold text-slate-600 text-sm">Profit</th>
                                     <th className="p-4 font-semibold text-slate-600 text-sm">Tipe</th>
+                                    <th className="p-4 font-semibold text-slate-600 text-sm text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {transactions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="p-8 text-center text-slate-500">
+                                        <td colSpan={6} className="p-8 text-center text-slate-500">
                                             Belum ada transaksi hari ini.
                                         </td>
                                     </tr>
@@ -129,6 +190,15 @@ export default function ReportsPage() {
                                                         Standard
                                                     </span>
                                                 )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <button
+                                                    onClick={() => handleDelete(t.id, t.liter, t.nominal)}
+                                                    className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-full transition"
+                                                    title="Hapus / Void Transaksi"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))

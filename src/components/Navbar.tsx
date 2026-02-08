@@ -9,13 +9,13 @@ export default function Navbar() {
                     <span className="text-blue-400">E-Fuel</span> POS
                 </h1>
                 <div className="flex gap-6">
-                    <Link href="/" className="flex items-center gap-2 hover:text-blue-300 transition-colors">
+                    <Link href="/dashboard" className="flex items-center gap-2 hover:text-blue-300 transition-colors">
+                        <LayoutDashboard size={20} />
+                        <span className="hidden sm:inline">Dashboard</span>
+                    </Link>
+                    <Link href="/pos" className="flex items-center gap-2 hover:text-blue-300 transition-colors">
                         <Store size={20} />
                         <span className="hidden sm:inline">Kasir</span>
-                    </Link>
-                    <Link href="/admin" className="flex items-center gap-2 hover:text-blue-300 transition-colors">
-                        <LayoutDashboard size={20} />
-                        <span className="hidden sm:inline">Admin</span>
                     </Link>
                 </div>
             </div>

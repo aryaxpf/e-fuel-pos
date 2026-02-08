@@ -178,6 +178,45 @@ export const StorageService = {
         return newRecord;
     },
 
+    deleteTransaction: async (id: string, literToRestore: number, nominal: number) => {
+        if (supabase) {
+            // 1. Delete Transaction
+            const { error: deleteError } = await supabase
+                .from('transactions')
+                .delete()
+                .eq('id', id);
+
+            if (deleteError) throw deleteError;
+
+            // 2. Restore Stock (Add Adjustment Log)
+            const { error: logError } = await supabase
+                .from('inventory_logs')
+                .insert({
+                    type: 'ADJUSTMENT',
+                    volume: literToRestore,
+                    cost_per_liter: 0,
+                    notes: `Void Transaksi (${nominal})`,
+                    date: new Date().toISOString()
+                });
+
+            if (logError) console.error("Failed to auto-restore stock", logError);
+            return;
+        }
+
+        // LocalStorage
+        const records = await StorageService.getTransactions();
+        const newRecords = records.filter(r => r.id !== id);
+        localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(newRecords));
+
+        // Restore Stock
+        await StorageService.addInventoryLog({
+            type: 'ADJUSTMENT',
+            volume: literToRestore,
+            costPerLiter: 0,
+            notes: `Void Transaksi (${nominal})`
+        });
+    },
+
     // --- Pricing Rules ---
     getPricingRules: async (): Promise<PricingRule[]> => {
         if (supabase) {
@@ -197,14 +236,99 @@ export const StorageService = {
         if (typeof window === 'undefined') return [];
         const data = localStorage.getItem(KEYS.PRICING);
         if (!data) {
-            const defaults: PricingRule[] = [
+            const defaultRules: PricingRule[] = [
                 { id: '1', nominal: 10000, liter: 0.7, isActive: true },
                 { id: '2', nominal: 6000, liter: 0.5, isActive: true },
                 { id: '3', nominal: 15000, liter: 1.2, isActive: true },
             ];
-            localStorage.setItem(KEYS.PRICING, JSON.stringify(defaults));
-            return defaults;
+            localStorage.setItem(KEYS.PRICING, JSON.stringify(defaultRules));
+            return defaultRules;
         }
         return JSON.parse(data);
     },
+
+    // --- User Management (Phase 8) ---
+    login: async (username: string, password: string): Promise<{ success: boolean; role?: 'admin' | 'cashier'; error?: string }> => {
+        console.log("Login Attempt:", username, password); // Debug log
+        const cleanUser = username.toLowerCase().trim();
+
+        // 1. GLOBAL ADMIN BYPASS (Safety Net) -> MOVED TO TOP
+        // Ensure admin always works even if LocalStorage data is stale/corrupted or Supabase fails
+        if (cleanUser === 'admin' && (password === 'admin123' || password === '123')) {
+            // Self-healing: Ensure admin exists in storage for future consistency
+            if (typeof window !== 'undefined') {
+                const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                const adminExists = storedUsers.find((u: any) => u.username === 'admin');
+                if (!adminExists) {
+                    storedUsers.push({ id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin' });
+                    localStorage.setItem('users', JSON.stringify(storedUsers));
+                }
+            }
+            return { success: true, role: 'admin' };
+        }
+
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('username', cleanUser)
+                .single();
+
+            if (error || !data) return { success: false, error: 'User tidak ditemukan' };
+
+            // Simple string comparison for MVP as requested
+            if (data.password === password) {
+                return { success: true, role: data.role };
+            } else {
+                return { success: false, error: 'Password salah' };
+            }
+        }
+
+        // LocalStorage Fallback
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+        // Init default admin if COMPLETELY empty
+        if (users.length === 0) {
+            const defaultAdmin = { id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin' };
+            users.push(defaultAdmin);
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        const user = users.find((u: any) => u.username === cleanUser);
+        if (!user) return { success: false, error: 'User tidak ditemukan' };
+        if (user.password === password) return { success: true, role: user.role };
+        return { success: false, error: 'Password salah' };
+    },
+
+    getUsers: async () => {
+        if (supabase) {
+            const { data } = await supabase.from('users').select('*').order('username');
+            return data || [];
+        }
+        return JSON.parse(localStorage.getItem('users') || '[]');
+    },
+
+    addUser: async (user: any) => {
+        if (supabase) {
+            const { error } = await supabase.from('users').insert(user);
+            if (error) throw error;
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.find((u: any) => u.username === user.username)) throw new Error('Username sudah ada');
+        users.push({ ...user, id: Date.now().toString() });
+        localStorage.setItem('users', JSON.stringify(users));
+    },
+
+    deleteUser: async (id: string) => {
+        if (supabase) {
+            const { error } = await supabase.from('users').delete().eq('id', id);
+            if (error) throw error;
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const newUsers = users.filter((u: any) => u.id !== id);
+        localStorage.setItem('users', JSON.stringify(newUsers));
+    }
 };
