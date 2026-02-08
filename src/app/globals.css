@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the printable area */
+  .print\:block, .print\:block * {
+    visibility: visible;
+  }
+
+  /* Position the receipt at the very top-left */
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm; /* Standard thermal width */
+    font-family: 'Courier New', Courier, monospace; /* Monospace matches thermal font better */
+  }
+
+  /* Reset page margins */
+  @page {
+    size: auto;
+    margin: 0;
+  }
+}
