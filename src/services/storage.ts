@@ -252,20 +252,8 @@ export const StorageService = {
         console.log("Login Attempt:", username, password); // Debug log
         const cleanUser = username.toLowerCase().trim();
 
-        // 1. GLOBAL ADMIN BYPASS (Safety Net) -> MOVED TO TOP
-        // Ensure admin always works even if LocalStorage data is stale/corrupted or Supabase fails
-        if (cleanUser === 'admin' && (password === 'admin123' || password === '123')) {
-            // Self-healing: Ensure admin exists in storage for future consistency
-            if (typeof window !== 'undefined') {
-                const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-                const adminExists = storedUsers.find((u: any) => u.username === 'admin');
-                if (!adminExists) {
-                    storedUsers.push({ id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin' });
-                    localStorage.setItem('users', JSON.stringify(storedUsers));
-                }
-            }
-            return { success: true, role: 'admin' };
-        }
+        // 1. GLOBAL ADMIN BYPASS REMOVED to allow password changes.
+        // The admin user is now initialized in storage below if missing.
 
         if (supabase) {
             const { data, error } = await supabase
@@ -273,6 +261,30 @@ export const StorageService = {
                 .select('*')
                 .eq('username', cleanUser)
                 .single();
+
+            // Self-Healing for Supabase: If admin is missing, create it
+            if ((error || !data) && cleanUser === 'admin') {
+                console.log("Admin user missing in Supabase. Attempting to create...");
+                const { data: newAdmin, error: createError } = await supabase
+                    .from('users')
+                    .insert({ username: 'admin', password: 'admin123', role: 'admin' })
+                    .select()
+                    .single();
+
+                if (createError) {
+                    console.error("Auto-create Admin Failed:", createError);
+                    // Check for RLS or Table Missing
+                    if (createError.code === '42P01') {
+                        return { success: false, error: 'Tabel "users" tidak ditemukan. Jalankan SQL Script di Supabase!' };
+                    }
+                    return { success: false, error: `Gagal buat admin: ${createError.message}` };
+                }
+
+                if (newAdmin) {
+                    console.log("Admin created successfully.");
+                    return { success: true, role: 'admin' };
+                }
+            }
 
             if (error || !data) return { success: false, error: 'User tidak ditemukan' };
 
@@ -288,8 +300,10 @@ export const StorageService = {
 
         const users = JSON.parse(localStorage.getItem('users') || '[]');
 
-        // Init default admin if COMPLETELY empty
-        if (users.length === 0) {
+        // Ensure Admin Exists (Self-Healing)
+        // If 'admin' doesn't exist, create it with default credentials
+        // This allows it to show up in the list and be editable
+        if (!users.find((u: any) => u.username === 'admin')) {
             const defaultAdmin = { id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin' };
             users.push(defaultAdmin);
             localStorage.setItem('users', JSON.stringify(users));
@@ -318,6 +332,20 @@ export const StorageService = {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         if (users.find((u: any) => u.username === user.username)) throw new Error('Username sudah ada');
         users.push({ ...user, id: Date.now().toString() });
+        localStorage.setItem('users', JSON.stringify(users));
+    },
+
+    updateUser: async (id: string, updates: any) => {
+        if (supabase) {
+            const { error } = await supabase.from('users').update(updates).eq('id', id);
+            if (error) throw error;
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const index = users.findIndex((u: any) => u.id === id);
+        if (index === -1) throw new Error('User not found');
+
+        users[index] = { ...users[index], ...updates };
         localStorage.setItem('users', JSON.stringify(users));
     },
 

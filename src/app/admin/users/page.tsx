@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../../../components/Navbar';
-import { ArrowLeft, Trash2, UserPlus, Shield, User } from 'lucide-react';
+import { ArrowLeft, Trash2, UserPlus, Shield, User, KeyRound, X } from 'lucide-react';
 import Link from 'next/link';
 import { StorageService } from '../../../services/storage';
 import { useAuth } from '../../../context/AuthContext';
@@ -18,6 +18,11 @@ export default function UsersPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState<'admin' | 'cashier'>('cashier');
+
+    // Change Password Modal State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [newPassword, setNewPassword] = useState('');
 
     useEffect(() => {
         if (!authLoading) {
@@ -71,11 +76,83 @@ export default function UsersPage() {
         }
     };
 
+    const openPasswordModal = (u: any) => {
+        setSelectedUser(u);
+        setNewPassword('');
+        setShowPasswordModal(true);
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedUser) return;
+
+        try {
+            await StorageService.updateUser(selectedUser.id, { password: newPassword });
+            alert(`Password untuk ${selectedUser.username} berhasil diubah!`);
+            setShowPasswordModal(false);
+            fetchdata(); // Refresh data ensures consistency
+        } catch (error) {
+            console.error(error);
+            alert('Gagal mengubah password');
+        }
+    };
+
     if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 relative">
             <Navbar />
+
+            {/* --- Change Password Modal --- */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center mb-6 border-b pb-4">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <KeyRound className="text-blue-600" />
+                                Ganti Password
+                            </h3>
+                            <button onClick={() => setShowPasswordModal(false)} className="text-slate-400 hover:text-red-500 transition">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <p className="mb-4 text-slate-600 text-sm">
+                            Mengubah password untuk user <strong className="text-slate-800">{selectedUser?.username}</strong>.
+                        </p>
+
+                        <form onSubmit={handleChangePassword} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Password Baru</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-center text-lg placeholder:text-sm"
+                                    placeholder="Masukkan password baru"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPasswordModal(false)}
+                                    className="flex-1 py-3 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+                                >
+                                    Simpan Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <main className="container mx-auto p-4 md:p-8">
                 <header className="mb-8">
@@ -164,13 +241,24 @@ export default function UsersPage() {
                                                 </span>
                                             </td>
                                             <td className="p-4 text-right">
-                                                <button
-                                                    onClick={() => handleDelete(u.id, u.username)}
-                                                    disabled={u.username === 'admin' || u.username === user?.username}
-                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => openPasswordModal(u)}
+                                                        className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition"
+                                                        title="Ganti Password"
+                                                    >
+                                                        <KeyRound size={18} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDelete(u.id, u.username)}
+                                                        disabled={u.username === 'admin' || u.username === user?.username}
+                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title="Hapus User"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
