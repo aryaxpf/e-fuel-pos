@@ -51,53 +51,50 @@ export default function AdminDashboard() {
                 </header>
 
                 {/* --- Admin Actions --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    {/* Stock Card */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                            <Fuel size={100} className="text-blue-500" />
-                        </div>
-
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Sisa Stok Fisik</p>
-                            <h2 className="text-4xl font-extrabold text-slate-800 mt-2">
-                                {stock} <span className="text-lg font-medium text-slate-400">Liter</span>
-                            </h2>
-                        </div>
-
-                        <div className="mt-8">
-                            <Link
-                                href="/admin/restock"
-                                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg transform active:scale-95 w-full justify-center"
-                            >
-                                <Plus size={20} />
-                                <span>Restock Bensin</span>
-                            </Link>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
                     {/* User Management Card */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:border-purple-200 transition">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
                             <Users size={100} className="text-purple-500" />
                         </div>
-
                         <div>
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Data Pengguna</p>
-                            <h2 className="text-3xl font-bold text-slate-800 mt-2">Manajemen User</h2>
-                            <p className="text-slate-400 mt-1">Tambah atau Hapus Akun Kasir</p>
+                            <p className="text-sm font-medium text-purple-500 uppercase tracking-wider">Data Pengguna</p>
+                            <h2 className="text-2xl font-bold text-slate-800 mt-2">Manajemen User</h2>
+                            <p className="text-slate-400 mt-1 text-sm">Tambah/Hapus Kasir</p>
                         </div>
-
                         <div className="mt-8">
                             <Link
                                 href="/admin/users"
-                                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg transform active:scale-95 w-full justify-center"
+                                className="inline-flex items-center gap-2 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-lg font-bold transition w-full justify-center"
                             >
-                                <Users size={20} />
-                                <span>Kelola Users</span>
+                                <Users size={18} /> Kelola
                             </Link>
                         </div>
                     </div>
+
+
+
+                    {/* Store Settings Card */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <RefreshCw size={100} className="text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-blue-500 uppercase tracking-wider">Konfigurasi</p>
+                            <h2 className="text-2xl font-bold text-slate-800 mt-2">Pengaturan Toko</h2>
+                            <p className="text-slate-400 mt-1 text-sm">Nama, Alamat, Struk</p>
+                        </div>
+                        <div className="mt-8">
+                            <Link
+                                href="/admin/settings"
+                                className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg font-bold transition w-full justify-center"
+                            >
+                                <RefreshCw size={18} /> Atur
+                            </Link>
+                        </div>
+                    </div>
+
                 </div>
 
             </main>

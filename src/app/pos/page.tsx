@@ -20,6 +20,76 @@ export default function POSPage() {
     const [showModal, setShowModal] = useState(false);
     const [lastTransaction, setLastTransaction] = useState({ nominal: 0, liter: 0, profit: 0 });
 
+    // Debt State
+    const [showDebtModal, setShowDebtModal] = useState(false);
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+    const [newCustomerName, setNewCustomerName] = useState('');
+
+    const loadCustomers = async () => {
+        const data = await StorageService.getCustomers();
+        setCustomers(data);
+    };
+
+    const handleAddCustomer = async () => {
+        if (!newCustomerName) return;
+        try {
+            const customer = await StorageService.addCustomer(newCustomerName);
+            setCustomers([...customers, customer]);
+            setSelectedCustomer(customer);
+        } catch (error) {
+            console.error(error);
+            alert('Gagal tambah pelanggan');
+        }
+    };
+
+    const handleDebtProcess = async () => {
+        if (!result || result.nominal === 0 || !selectedCustomer) return;
+
+        // 1. Check Stock
+        if (result.liter > currentStock) {
+            alert(`Stok tidak cukup! Sisa: ${currentStock} Liter.`);
+            return;
+        }
+
+        try {
+            // 2. Save Transaction as DEBT
+            const transaction = await StorageService.addTransaction({
+                ...result,
+                paymentMethod: 'DEBT' // Explicitly set payment method
+            } as any);
+
+            // 3. Create Debt Record
+            await StorageService.addDebt(
+                selectedCustomer.id,
+                transaction.id,
+                result.nominal,
+                'Kasbon Bensin'
+            );
+
+            // 4. Update Inventory
+            await StorageService.addInventoryLog({
+                type: 'OUT',
+                volume: result.liter,
+                costPerLiter: 0,
+                notes: `Kasbon: ${selectedCustomer.name}`
+            });
+
+            // 5. Success
+            playSuccessSound();
+            setLastTransaction({ nominal: result.nominal, liter: result.liter, profit: result.profit });
+            setShowModal(true); // Reuse existing success modal
+            setShowDebtModal(false);
+            setNewCustomerName('');
+            setSelectedCustomer(null);
+            updateStock();
+
+        } catch (error) {
+            console.error(error);
+            alert('Gagal proses kasbon');
+        }
+    };
+
     // Protect Route
     useEffect(() => {
         if (!loading && !user) {
@@ -227,9 +297,82 @@ export default function POSPage() {
                                 <span>BAYAR</span>
                                 <ChevronRight size={24} />
                             </button>
+
+                            <button
+                                onClick={() => {
+                                    if (!result || result.nominal === 0) return;
+                                    loadCustomers();
+                                    setShowDebtModal(true);
+                                }}
+                                disabled={!result || result.nominal === 0}
+                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"
+                            >
+                                <span className="text-sm">BAYAR NANTI (KASBON)</span>
+                            </button>
                         </div>
                     </div>
                 </section>
+
+                {/* --- DEBT MODAL --- */}
+                {showDebtModal && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl w-full max-w-md p-6">
+                            <h3 className="text-xl font-bold mb-4">Pilih Pelanggan</h3>
+
+                            {/* Search / Add Customer Input */}
+                            <div className="mb-4">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Cari / Tambah Baru</label>
+                                <input
+                                    type="text"
+                                    placeholder="Nama Pelanggan..."
+                                    className="w-full p-3 border rounded-xl mt-1 text-slate-800"
+                                    value={newCustomerName}
+                                    onChange={(e) => setNewCustomerName(e.target.value)}
+                                />
+                                {newCustomerName && !customers.find(c => c.name.toLowerCase() === newCustomerName.toLowerCase()) && (
+                                    <button
+                                        onClick={handleAddCustomer}
+                                        className="mt-2 text-sm text-blue-600 font-bold flex items-center gap-1"
+                                    >
+                                        + Tambah "{newCustomerName}"
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Customer List */}
+                            <div className="max-h-60 overflow-y-auto border rounded-xl mb-4">
+                                {customers
+                                    .filter(c => c.name.toLowerCase().includes(newCustomerName.toLowerCase()))
+                                    .map(c => (
+                                        <div
+                                            key={c.id}
+                                            onClick={() => setSelectedCustomer(c)}
+                                            className={`p-3 border-b last:border-0 cursor-pointer flex justify-between items-center ${selectedCustomer?.id === c.id ? 'bg-blue-50 text-blue-800 font-bold' : 'hover:bg-slate-50 text-slate-800'}`}
+                                        >
+                                            <span>{c.name}</span>
+                                            {selectedCustomer?.id === c.id && <span>✓</span>}
+                                        </div>
+                                    ))}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => { setShowDebtModal(false); setSelectedCustomer(null); }}
+                                    className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleDebtProcess}
+                                    disabled={!selectedCustomer}
+                                    className="flex-1 py-3 bg-blue-600 rounded-xl font-bold text-white disabled:opacity-50"
+                                >
+                                    Simpan Hutang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
             </main>
         </div>

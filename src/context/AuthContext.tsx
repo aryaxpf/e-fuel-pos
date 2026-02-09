@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { StorageService } from '../services/storage';
 
 interface User {
+    id: string;
     username: string;
     role: 'admin' | 'cashier';
 }
@@ -25,9 +26,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Check session storage on mount
-        const savedUser = sessionStorage.getItem('efuel_user');
-        if (savedUser) {
-            setUser(JSON.parse(savedUser));
+        const savedUserStr = sessionStorage.getItem('efuel_user');
+        if (savedUserStr) {
+            try {
+                const savedUser = JSON.parse(savedUserStr);
+                // Validate if user has ID (Migrate old sessions)
+                if (savedUser && savedUser.id) {
+                    setUser(savedUser);
+                } else {
+                    // Invalid/Old session, clear it
+                    sessionStorage.removeItem('efuel_user');
+                    setUser(null);
+                }
+            } catch (e) {
+                sessionStorage.removeItem('efuel_user');
+                setUser(null);
+            }
         }
         setLoading(false);
     }, []);
@@ -35,8 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (username: string, pass: string) => {
         try {
             const result = await StorageService.login(username, pass);
-            if (result.success && result.role) {
-                const newUser: User = { username, role: result.role };
+            if (result.success && result.role && result.id) {
+                const newUser: User = { id: result.id, username, role: result.role };
                 setUser(newUser);
                 sessionStorage.setItem('efuel_user', JSON.stringify(newUser));
                 return null; // No error

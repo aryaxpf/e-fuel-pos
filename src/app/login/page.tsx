@@ -53,6 +53,7 @@ export default function LoginPage() {
                                 <input
                                     type="text"
                                     required
+                                    autoFocus
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-slate-900"

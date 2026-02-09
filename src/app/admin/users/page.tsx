@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../../../components/Navbar';
-import { ArrowLeft, Trash2, UserPlus, Shield, User, KeyRound, X } from 'lucide-react';
+import { ArrowLeft, Trash2, UserPlus, Shield, User, KeyRound, X, Users, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { StorageService } from '../../../services/storage';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import Toast, { ToastType } from '../../../components/Toast';
 
 export default function UsersPage() {
     const { user, loading: authLoading } = useAuth();
@@ -18,11 +19,20 @@ export default function UsersPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState<'admin' | 'cashier'>('cashier');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Change Password Modal State
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [newPassword, setNewPassword] = useState('');
+
+    // Delete Modal State
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<any>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Toast State
+    const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
     useEffect(() => {
         if (!authLoading) {
@@ -48,31 +58,44 @@ export default function UsersPage() {
 
     const handleAddUser = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             await StorageService.addUser({ username, password, role });
-            alert('User berhasil ditambahkan!');
+            setToast({ message: 'User berhasil ditambahkan!', type: 'success' });
             setUsername('');
             setPassword('');
             fetchdata();
         } catch (error: any) {
-            alert(error.message || 'Gagal menambah user');
+            setToast({ message: error.message || 'Gagal menambah user', type: 'error' });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const handleDelete = async (id: string, name: string) => {
+    const handleDelete = (id: string, name: string) => {
         if (name === 'admin' || name === user?.username) {
-            alert('Tidak bisa menghapus akun Admin Utama atau akun sendiri.');
+            setToast({ message: 'Tidak bisa menghapus akun Admin Utama atau akun sendiri.', type: 'error' });
             return;
         }
+        setUserToDelete({ id, username: name });
+        setShowDeleteModal(true);
+    };
 
-        if (confirm(`Yakin ingin menghapus user ${name}?`)) {
-            try {
-                await StorageService.deleteUser(id);
-                fetchdata();
-            } catch (error) {
-                console.error(error);
-                alert('Gagal menghapus user');
-            }
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await StorageService.deleteUser(userToDelete.id);
+            setToast({ message: 'User berhasil dihapus', type: 'success' });
+            fetchdata();
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+        } catch (error: any) {
+            console.error(error);
+            setToast({ message: 'Gagal menghapus user: ' + error.message, type: 'error' });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -88,12 +111,12 @@ export default function UsersPage() {
 
         try {
             await StorageService.updateUser(selectedUser.id, { password: newPassword });
-            alert(`Password untuk ${selectedUser.username} berhasil diubah!`);
+            setToast({ message: `Password untuk ${selectedUser.username} berhasil diubah!`, type: 'success' });
             setShowPasswordModal(false);
-            fetchdata(); // Refresh data ensures consistency
+            fetchdata();
         } catch (error) {
             console.error(error);
-            alert('Gagal mengubah password');
+            setToast({ message: 'Gagal mengubah password', type: 'error' });
         }
     };
 
@@ -117,131 +140,158 @@ export default function UsersPage() {
                             </button>
                         </div>
 
-                        <p className="mb-4 text-slate-600 text-sm">
-                            Mengubah password untuk user <strong className="text-slate-800">{selectedUser?.username}</strong>.
-                        </p>
-
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Password Baru</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Password Baru</label>
                                 <input
-                                    type="text"
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-center text-lg placeholder:text-sm"
-                                    placeholder="Masukkan password baru"
-                                    value={newPassword}
-                                    onChange={e => setNewPassword(e.target.value)}
+                                    type="password"
                                     required
-                                    autoFocus
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
+                                    placeholder="Password baru"
                                 />
                             </div>
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPasswordModal(false)}
-                                    className="flex-1 py-3 text-slate-600 font-medium hover:bg-slate-100 rounded-xl transition"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200"
-                                >
-                                    Simpan Password
-                                </button>
-                            </div>
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-lg shadow-blue-200"
+                            >
+                                Simpan Password
+                            </button>
                         </form>
                     </div>
                 </div>
             )}
 
-            <main className="container mx-auto p-4 md:p-8">
+            {/* --- Delete Confirmation Modal --- */}
+            {showDeleteModal && userToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-in fade-in zoom-in duration-200 text-center">
+                        <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={36} />
+                        </div>
+
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Hapus User?</h3>
+                        <p className="text-slate-500 mb-6">
+                            Apakah Anda yakin ingin menghapus user <strong>{userToDelete.username}</strong>?
+                            <br />Tindakan ini tidak dapat dibatalkan.
+                        </p>
+
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                className="flex-1 py-3 bg-red-600 rounded-xl font-bold text-white hover:bg-red-700 transition shadow-lg shadow-red-200 disabled:opacity-70"
+                            >
+                                {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            <main className="container mx-auto p-4 md:p-8 max-w-5xl">
                 <header className="mb-8">
                     <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-4 transition">
                         <ArrowLeft size={20} />
                         Kembali ke Dashboard
                     </Link>
-                    <h1 className="text-3xl font-bold text-slate-800">Manajemen Pengguna</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                            <Users size={32} />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-800">Manajemen User</h1>
+                            <p className="text-slate-500">Tambah, edit, dan kelola akses pengguna</p>
+                        </div>
+                    </div>
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Add User Form */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <UserPlus size={20} className="text-blue-600" />
-                            Tambah User Baru
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit md:col-span-1">
+                        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-2">
+                            <UserPlus className="text-blue-500" size={20} /> Tambah User
                         </h2>
                         <form onSubmit={handleAddUser} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Username</label>
                                 <input
                                     type="text"
                                     required
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
+                                    placeholder="Username"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
                                 <input
-                                    type="text"
+                                    type="password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
+                                    placeholder="******"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Role</label>
                                 <select
                                     value={role}
                                     onChange={(e) => setRole(e.target.value as 'admin' | 'cashier')}
-                                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
                                 >
-                                    <option value="cashier">Cashier (Kasir)</option>
+                                    <option value="cashier">Cashier / Staff</option>
                                     <option value="admin">Admin (Full Access)</option>
                                 </select>
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition"
+                                disabled={isSubmitting}
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-lg shadow-blue-200 disabled:opacity-70 mt-4"
                             >
-                                Tambah Akun
+                                {isSubmitting ? 'Menyimpan...' : 'Tambah User'}
                             </button>
                         </form>
                     </div>
 
                     {/* User List */}
-                    <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead className="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th className="p-4 font-semibold text-slate-600 text-sm">Username</th>
-                                    <th className="p-4 font-semibold text-slate-600 text-sm">Role</th>
-                                    <th className="p-4 font-semibold text-slate-600 text-sm text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {loading ? (
-                                    <tr><td colSpan={3} className="p-4 text-center">Loading...</td></tr>
-                                ) : (
-                                    users.map((u) => (
-                                        <tr key={u.id} className="hover:bg-slate-50 transition">
-                                            <td className="p-4 font-medium text-slate-800 flex items-center gap-3">
-                                                <div className={`p-2 rounded-full ${u.role === 'admin' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
-                                                    {u.role === 'admin' ? <Shield size={16} /> : <User size={16} />}
-                                                </div>
-                                                {u.username}
-                                                {u.username === user?.username && <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">(You)</span>}
-                                            </td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${u.role === 'admin' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                    {u.role}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 text-right">
-                                                <div className="flex justify-end gap-2">
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden md:col-span-2">
+                        <div className="p-6 border-b border-slate-100">
+                            <h2 className="text-xl font-bold text-slate-800">Daftar Pengguna</h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 text-slate-600 font-bold text-sm">
+                                    <tr>
+                                        <th className="p-4">Username</th>
+                                        <th className="p-4">Role</th>
+                                        <th className="p-4 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {users.length === 0 ? (
+                                        <tr><td colSpan={3} className="p-8 text-center text-slate-400">Belum ada user</td></tr>
+                                    ) : (
+                                        users.map((u) => (
+                                            <tr key={u.id} className="hover:bg-slate-50 transition">
+                                                <td className="p-4 font-bold text-slate-800">{u.username}</td>
+                                                <td className="p-4">
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
+                                                        <Shield size={12} /> {u.role.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 flex justify-center gap-2">
                                                     <button
                                                         onClick={() => openPasswordModal(u)}
                                                         className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition"
@@ -258,13 +308,13 @@ export default function UsersPage() {
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </main>
