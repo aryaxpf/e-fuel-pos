@@ -16,6 +16,7 @@ export default function AttendancePage() {
     const [photoData, setPhotoData] = useState<string | null>(null);
     const [activity, setActivity] = useState<'IN' | 'OUT'>('IN');
 
+    const streamRef = useRef<MediaStream | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -32,15 +33,28 @@ export default function AttendancePage() {
         } else {
             setErrorMessage('Browser tidak mendukung Geolocation.');
         }
+
+        return () => {
+            // Cleanup stream on unmount
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
     }, []);
+
+    // Effect to attach stream when video element is ready
+    useEffect(() => {
+        if (status === 'CAMERA_READY' && videoRef.current && streamRef.current) {
+            videoRef.current.srcObject = streamRef.current;
+            videoRef.current.play().catch(e => console.log("Play error:", e));
+        }
+    }, [status]);
 
     const startCamera = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                setStatus('CAMERA_READY');
-            }
+            streamRef.current = stream;
+            setStatus('CAMERA_READY');
         } catch (err) {
             setErrorMessage('Gagal akses kamera. Izinkan penggunaan kamera.');
         }
@@ -55,8 +69,10 @@ export default function AttendancePage() {
                 setPhotoData(data);
 
                 // Stop Camera Stream
-                const stream = videoRef.current.srcObject as MediaStream;
-                stream?.getTracks().forEach(track => track.stop());
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop());
+                    streamRef.current = null;
+                }
             }
         }
     };
@@ -100,8 +116,16 @@ export default function AttendancePage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-            <div className="bg-white max-w-md w-full rounded-2xl shadow-xl overflow-hidden">
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 relative">
+            {/* Back Button */}
+            <button
+                onClick={() => router.push('/dashboard')}
+                className="absolute top-4 left-4 flex items-center gap-2 text-slate-600 bg-white px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 font-medium z-10"
+            >
+                ← Dashboard
+            </button>
+
+            <div className="bg-white max-w-md w-full rounded-2xl shadow-xl overflow-hidden mt-12 bg-white">
                 <div className="bg-blue-600 p-6 text-white text-center">
                     <h1 className="text-2xl font-bold">Absensi Digital</h1>
                     <p className="opacity-80 text-sm mt-1">Clock In & Out System</p>
@@ -120,7 +144,7 @@ export default function AttendancePage() {
                         <div className="relative">
                             <User className="absolute left-3 top-3 text-slate-400" size={20} />
                             <select
-                                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-800"
                                 value={selectedEmployee}
                                 onChange={(e) => setSelectedEmployee(e.target.value)}
                             >
@@ -154,7 +178,7 @@ export default function AttendancePage() {
                             <>
                                 {status === 'CAMERA_READY' ? (
                                     <div className="relative rounded-lg overflow-hidden bg-black aspect-video mb-4">
-                                        <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
+                                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
                                         <button
                                             onClick={capturePhoto}
                                             className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-slate-800 px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition"

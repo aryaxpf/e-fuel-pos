@@ -39,7 +39,8 @@ export default function ReportsPage() {
     const [hourlyHeatmap, setHourlyHeatmap] = useState<any[]>([]);
 
     // Phase 28: Advanced Analytics State
-    const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'month'>('7d');
+    const [timeRange, setTimeRange] = useState<'shift' | '7d' | '30d' | 'month'>('7d');
+    const [currentShift, setCurrentShift] = useState<any>(null);
     const [profitTrend, setProfitTrend] = useState<any[]>([]);
     const [paymentStats, setPaymentStats] = useState<any[]>([]);
 
@@ -62,18 +63,26 @@ export default function ReportsPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [transactions, inventory, expenses] = await Promise.all([
+            const [transactions, inventory, expenses, shift] = await Promise.all([
                 StorageService.getTransactions(),
                 StorageService.getInventoryLogs(),
-                StorageService.getExpenses()
+                StorageService.getExpenses(),
+                user?.id ? StorageService.getCurrentShift(user.id) : Promise.resolve(null)
             ]);
 
             setRawTransactions(transactions);
             setRawInventory(inventory);
             setRawExpenses(expenses);
+            setCurrentShift(shift);
 
-            // Initial processing
-            processData(transactions, inventory, expenses, timeRange);
+            // Default to 'shift' if active, otherwise '7d'
+            // Only set this on initial load to avoid overriding user choice
+            if (shift && timeRange === '7d') {
+                setTimeRange('shift');
+                processData(transactions, inventory, expenses, 'shift', shift);
+            } else {
+                processData(transactions, inventory, expenses, timeRange, shift);
+            }
 
         } catch (error) {
             console.error(error);
@@ -86,13 +95,18 @@ export default function ReportsPage() {
         transactions: TransactionRecord[],
         inventory: InventoryLog[],
         expenses: any[],
-        range: '7d' | '30d' | 'month'
+        range: 'shift' | '7d' | '30d' | 'month',
+        shift: any
     ) => {
         // 1. Determine Date Cutoff
         const now = new Date();
         let cutoff = new Date();
+        let isShiftMode = false;
 
-        if (range === '7d') {
+        if (range === 'shift' && shift) {
+            cutoff = new Date(shift.start_time);
+            isShiftMode = true;
+        } else if (range === '7d') {
             cutoff.setDate(now.getDate() - 6); // Last 7 days including today
             cutoff.setHours(0, 0, 0, 0);
         } else if (range === '30d') {
@@ -100,10 +114,16 @@ export default function ReportsPage() {
             cutoff.setHours(0, 0, 0, 0);
         } else if (range === 'month') {
             cutoff = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of this month
+        } else if (range === 'shift' && !shift) {
+            // Fallback if user selected 'shift' but no active shift (e.g. forced via UI)
+            // Just show today or empty? Let's show Today
+            cutoff = new Date();
+            cutoff.setHours(0, 0, 0, 0);
         }
 
         // 2. Filter Data
         const filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutoff);
+        // For Inventory and Expenses, we also filter by time
         const filteredInv = inventory.filter(i => new Date(i.date) >= cutoff);
         const filteredExp = expenses.filter(e => new Date(e.date) >= cutoff);
 
@@ -159,25 +179,30 @@ export default function ReportsPage() {
 
         // A. Weekly/Daily Trend (Bar Chart) - Group by Date
         const dateMap = new Map<string, number>();
-        // Initialize map based on range to ensure continuous axis
-        // For simplicity in MVP, we might just map the filtered data
         filteredTx.forEach(t => {
             const dateKey = new Date(t.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
             dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + t.nominal);
         });
-        // Sort by date (rough approximation for map keys)
-        // Better: iterate days from cutoff to now
+
         const trendData: any[] = [];
-        const daysToIterate = range === '7d' ? 7 : range === '30d' ? 30 : new Date().getDate();
-        // Need precise day iteration
-        for (let d = new Date(cutoff); d <= now; d.setDate(d.getDate() + 1)) {
-            const key = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            trendData.push({
-                date: key,
-                amount: dateMap.get(key) || 0
-            });
+        // If shift mode, just show Today / Start Time bucket? Or simple hourly?
+        // Let's stick to standard daily grouping for charts, or generic buckets
+        if (isShiftMode) {
+            // For shift, maybe just show single bar or hourly within shift?
+            // Let's just map existing keys
+            dateMap.forEach((val, key) => trendData.push({ date: key, amount: val }));
+        } else {
+            // Standard iteration
+            const daysToIterate = range === '7d' ? 7 : range === '30d' ? 30 : new Date().getDate();
+            for (let d = new Date(cutoff); d <= now; d.setDate(d.getDate() + 1)) {
+                const key = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                trendData.push({
+                    date: key,
+                    amount: dateMap.get(key) || 0
+                });
+            }
         }
-        setWeeklyTrend(trendData); // Renaming state variable might be better, but reusing weeklyTrend for now
+        setWeeklyTrend(trendData);
 
         // B. Hourly Heatmap (Bar Chart)
         const hourMap = new Array(24).fill(0);
@@ -188,26 +213,31 @@ export default function ReportsPage() {
         setHourlyHeatmap(hourMap.map((v, i) => ({ hour: `${i}:00`, amount: v })));
 
         // C. Profit Trend (Line Chart: Revenue vs Net Profit)
-        // We need daily aggregation of Revenue, Cost, and OpEx
         const profitMap = new Map<string, { revenue: number, cost: number, opex: number }>();
 
-        // Init map
-        for (let d = new Date(cutoff); d <= now; d.setDate(d.getDate() + 1)) {
-            const key = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            profitMap.set(key, { revenue: 0, cost: 0, opex: 0 });
+        // Init map (skip for shift mode to avoid large empty range)
+        if (!isShiftMode) {
+            for (let d = new Date(cutoff); d <= now; d.setDate(d.getDate() + 1)) {
+                const key = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                profitMap.set(key, { revenue: 0, cost: 0, opex: 0 });
+            }
         }
 
         filteredTx.forEach(t => {
             const key = new Date(t.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            if (!profitMap.has(key) && isShiftMode) profitMap.set(key, { revenue: 0, cost: 0, opex: 0 });
+
             if (profitMap.has(key)) {
                 const entry = profitMap.get(key)!;
                 entry.revenue += t.nominal;
-                entry.cost += (t.nominal - t.profit); // Cost = Revenue - GrossProfit
+                entry.cost += (t.nominal - t.profit);
             }
         });
 
         filteredExp.forEach(e => {
             const key = new Date(e.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            if (!profitMap.has(key) && isShiftMode) profitMap.set(key, { revenue: 0, cost: 0, opex: 0 });
+
             if (profitMap.has(key)) {
                 profitMap.get(key)!.opex += e.amount;
             }
@@ -231,14 +261,17 @@ export default function ReportsPage() {
             { name: 'Kasbon', value: payMap.Debt, color: '#ef4444' }
         ]);
 
-        // E. Today's Hourly (for Daily Tab Chart) - Keep strictly "Today"
-        // This is separate from the time filter usually, or should it follow?
-        // Let's keep it as "Today" for the Dashboard feel, or "Selected Range" if we want unification.
-        // The UI says "Grafik Penjualan Hari Ini", so let's keep it strictly Today regardless of filter.
-        const todayStr = new Date().toDateString();
-        const todayTx = transactions.filter(t => new Date(t.timestamp).toDateString() === todayStr);
+        // E. Hourly Chart (For Daily Tab) - IF Shift mode, use filteredTx, else use Today
+        let chartSourceTx = transactions;
+        if (isShiftMode) {
+            chartSourceTx = filteredTx;
+        } else {
+            const todayStr = new Date().toDateString();
+            chartSourceTx = transactions.filter(t => new Date(t.timestamp).toDateString() === todayStr);
+        }
+
         const todayHourly = new Array(24).fill(0);
-        todayTx.forEach(t => todayHourly[new Date(t.timestamp).getHours()] += t.nominal);
+        chartSourceTx.forEach(t => todayHourly[new Date(t.timestamp).getHours()] += t.nominal);
         setChartData(todayHourly.map((v, i) => ({ date: `${i}:00`, sales: v })));
     };
 
@@ -249,16 +282,20 @@ export default function ReportsPage() {
     // Re-run processData when timeRange changes (using raw data)
     useEffect(() => {
         if (rawTransactions.length > 0 || rawInventory.length > 0) {
-            processData(rawTransactions, rawInventory, rawExpenses, timeRange);
+            processData(rawTransactions, rawInventory, rawExpenses, timeRange, currentShift);
         }
-    }, [timeRange, rawTransactions, rawInventory, rawExpenses]);
+    }, [timeRange, rawTransactions, rawInventory, rawExpenses, currentShift]);
 
     const handleExportExcel = () => {
         exportToExcel(unifiedData);
     };
 
     const handleExportWA = () => {
-        const text = `*Laporan Harian E-Fuel POS*\n\n` +
+        const title = timeRange === 'shift' && currentShift
+            ? `*Laporan Shift (${user?.username})*`
+            : `*Laporan Harian E-Fuel POS*`;
+
+        const text = `${title}\n\n` +
             `📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}\n` +
             `💰 Total Omzet: Rp ${summary.totalMoney.toLocaleString()}\n` +
             `📦 Total Restock: Rp ${summary.totalRestock.toLocaleString()}\n` +
@@ -404,13 +441,21 @@ export default function ReportsPage() {
                         Kembali ke Dashboard
                     </Link>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h1 className="text-3xl font-bold text-slate-800">Laporan & Aktivitas</h1>
+                        <div className="flex flex-col">
+                            <h1 className="text-3xl font-bold text-slate-800">Laporan & Aktivitas</h1>
+                            {currentShift && (
+                                <span className={`text-xs font-bold uppercase mt-1 ${timeRange === 'shift' ? 'text-green-600' : 'text-slate-400'}`}>
+                                    {timeRange === 'shift' ? '● Mode Shift Aktif' : '● Mode Riwayat'}
+                                </span>
+                            )}
+                        </div>
                         <div className="flex gap-2 flex-wrap">
                             <select
                                 value={timeRange}
                                 onChange={(e) => setTimeRange(e.target.value as any)}
                                 className="p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
                             >
+                                {currentShift && <option value="shift">Shift Saat Ini</option>}
                                 <option value="7d">7 Hari Terakhir</option>
                                 <option value="30d">30 Hari Terakhir</option>
                                 <option value="month">Bulan Ini</option>

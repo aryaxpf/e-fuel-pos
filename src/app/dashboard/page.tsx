@@ -15,6 +15,7 @@ export default function DashboardPage() {
     const [shiftRecommendation, setShiftRecommendation] = useState<string | null>(null);
     const [pendingCount, setPendingCount] = useState(0);
     const [currentShift, setCurrentShift] = useState<any>(null);
+    const [shiftRevenue, setShiftRevenue] = useState(0);
 
     // Protect Route & Check Shift
     useEffect(() => {
@@ -30,13 +31,22 @@ export default function DashboardPage() {
                     } else {
                         setCurrentShift(shift);
                     }
+                    return shift; // Return for chaining
                 };
-                checkShift();
 
                 // Advanced Analytics & AI Logic
                 const runAnalysis = async () => {
+                    const shift = await checkShift(); // Ensure we have shift
                     const transactions = await StorageService.getTransactions();
                     const today = new Date().toDateString();
+
+                    // 0. Shift Revenue (New)
+                    if (shift) {
+                        const shiftRev = transactions
+                            .filter(t => new Date(t.timestamp) >= new Date(shift.start_time))
+                            .reduce((acc, t) => acc + t.nominal, 0);
+                        setShiftRevenue(shiftRev);
+                    }
 
                     // 1. Restock Alert (Sales >= 7 Liters Today)
                     const todaySalesLiters = transactions
@@ -128,16 +138,23 @@ export default function DashboardPage() {
             <main className="container mx-auto p-6">
 
                 {currentShift && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex justify-between items-center">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex justify-between items-center shadow-sm">
                         <div>
-                            <p className="text-xs text-blue-500 font-bold uppercase">Shift Aktif</p>
-                            <p className="text-blue-800 text-sm">
+                            <p className="text-xs text-blue-500 font-bold uppercase mb-1">Shift Aktif</p>
+                            <p className="text-blue-800 text-sm flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                 Mulai: <strong>{new Date(currentShift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</strong>
                             </p>
                         </div>
-                        <div className="text-right">
-                            <p className="text-xs text-blue-500 font-bold uppercase">Modal</p>
-                            <p className="text-blue-800 font-bold">Rp {currentShift.initial_cash.toLocaleString()}</p>
+                        <div className="flex bg-white px-4 py-2 rounded-lg gap-6 border border-blue-100">
+                            <div className="text-right">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase">Modal Awal</p>
+                                <p className="text-slate-600 font-bold">Rp {currentShift.initial_cash.toLocaleString()}</p>
+                            </div>
+                            <div className="text-right border-l border-slate-100 pl-6">
+                                <p className="text-[10px] text-green-600 font-bold uppercase">Omzet Shift</p>
+                                <p className="text-green-600 font-bold text-lg">Rp {shiftRevenue.toLocaleString()}</p>
+                            </div>
                         </div>
                     </div>
                 )}
