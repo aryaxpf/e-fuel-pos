@@ -48,12 +48,29 @@ export default function DashboardPage() {
                         setShiftRevenue(shiftRev);
                     }
 
-                    // 1. Restock Alert (Sales >= 7 Liters Today)
-                    const todaySalesLiters = transactions
-                        .filter(t => new Date(t.timestamp).toDateString() === today)
+                    // 1. Restock Alert (Sales >= 7 Liters Since Last Restock Today)
+                    const logs = await StorageService.getInventoryLogs();
+
+                    const todayStr = new Date().toDateString();
+                    const todaysRestocks = logs.filter(l =>
+                        l.type === 'IN' &&
+                        new Date(l.date).toDateString() === todayStr
+                    );
+
+                    let salesStartTime = new Date();
+                    salesStartTime.setHours(0, 0, 0, 0); // Default: Start of today
+
+                    if (todaysRestocks.length > 0) {
+                        // logs are ordered by date desc
+                        const lastRestock = todaysRestocks[0];
+                        salesStartTime = new Date(lastRestock.date);
+                    }
+
+                    const relevantSalesLiters = transactions
+                        .filter(t => new Date(t.timestamp) > salesStartTime)
                         .reduce((acc, t) => acc + (t.liter || 0), 0);
 
-                    setAlertRestock(todaySalesLiters >= 7);
+                    setAlertRestock(relevantSalesLiters >= 7);
 
                     // 2. AI Stock Prediction
                     // Simple Moving Average Logic
@@ -64,7 +81,7 @@ export default function DashboardPage() {
                     const avgDailyLiters = totalRecentLiters / 7;
 
                     // Get Current Stock (Mocked or Real)
-                    const logs = await StorageService.getInventoryLogs();
+                    // Logs already fetched above
                     const currentStock = logs.reduce((acc, log) => acc + (log.type === 'IN' ? log.volume : -log.volume), 0);
 
                     if (avgDailyLiters > 0 && currentStock < (avgDailyLiters * 2)) {
