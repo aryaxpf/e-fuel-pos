@@ -34,41 +34,34 @@ AS $$
 DECLARE
     v_current_stock   NUMERIC(10,2);
     v_total_in        NUMERIC(10,2);
-    v_total_out_tx    NUMERIC(10,2);
-    v_total_out_logs  NUMERIC(10,2);
+    v_total_out       NUMERIC(10,2);
     v_transaction_id  UUID;
     v_inventory_id    UUID;
     v_now             TIMESTAMPTZ := NOW();
 BEGIN
     -- ========================================================
     -- STEP 1: Lock inventory_logs rows (FOR UPDATE)
-    -- This uses pessimistic locking to prevent concurrent 
-    -- reads from getting stale stock data.
-    -- Any other transaction calling this function will WAIT
-    -- until this one commits or rolls back.
+    -- Stock is tracked ONLY via inventory_logs (IN - OUT).
+    -- We do NOT count transactions.liter because each sale
+    -- already creates an inventory_logs OUT record.
     -- ========================================================
     
     -- Lock and calculate total IN (purchases + adjustments)
     SELECT COALESCE(SUM(volume), 0) INTO v_total_in
     FROM inventory_logs
     WHERE type IN ('IN', 'ADJUSTMENT')
-    FOR UPDATE;  -- Lock these rows
+    FOR UPDATE;
     
     -- Lock and calculate total OUT from inventory logs
-    SELECT COALESCE(SUM(volume), 0) INTO v_total_out_logs
+    SELECT COALESCE(SUM(volume), 0) INTO v_total_out
     FROM inventory_logs
     WHERE type = 'OUT'
-    FOR UPDATE;  -- Lock these rows too
-    
-    -- Calculate total sold from transactions
-    SELECT COALESCE(SUM(liter), 0) INTO v_total_out_tx
-    FROM transactions
-    FOR UPDATE;  -- Lock transactions to prevent concurrent inserts
+    FOR UPDATE;
     
     -- ========================================================
-    -- STEP 2: Calculate current stock
+    -- STEP 2: Calculate current stock (inventory_logs only)
     -- ========================================================
-    v_current_stock := v_total_in - v_total_out_tx - v_total_out_logs;
+    v_current_stock := v_total_in - v_total_out;
     
     -- ========================================================
     -- STEP 3: Validate stock is sufficient
@@ -182,24 +175,20 @@ AS $$
 DECLARE
     v_current_stock   NUMERIC(10,2);
     v_total_in        NUMERIC(10,2);
-    v_total_out_tx    NUMERIC(10,2);
-    v_total_out_logs  NUMERIC(10,2);
+    v_total_out       NUMERIC(10,2);
     v_transaction_id  UUID;
     v_inventory_id    UUID;
     v_debt_id         UUID;
     v_now             TIMESTAMPTZ := NOW();
 BEGIN
-    -- STEP 1: Lock and calculate stock (same pattern as process_transaction)
+    -- STEP 1: Lock and calculate stock (inventory_logs only)
     SELECT COALESCE(SUM(volume), 0) INTO v_total_in
     FROM inventory_logs WHERE type IN ('IN', 'ADJUSTMENT') FOR UPDATE;
     
-    SELECT COALESCE(SUM(volume), 0) INTO v_total_out_logs
+    SELECT COALESCE(SUM(volume), 0) INTO v_total_out
     FROM inventory_logs WHERE type = 'OUT' FOR UPDATE;
     
-    SELECT COALESCE(SUM(liter), 0) INTO v_total_out_tx
-    FROM transactions FOR UPDATE;
-    
-    v_current_stock := v_total_in - v_total_out_tx - v_total_out_logs;
+    v_current_stock := v_total_in - v_total_out;
     
     -- STEP 2: Validate stock
     IF p_liter > v_current_stock THEN

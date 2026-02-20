@@ -1,8 +1,126 @@
 @import "tailwindcss";
 
+/* ============================================================
+   E-FUEL POS — Design System
+   Premium POS interface optimized for fuel station environments
+   ============================================================ */
+
+/* --- Theme Tokens --- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surface */
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-input: #f8fafc;
+  --border: #e2e8f0;
+  --border-focus: #3b82f6;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Brand / Actions */
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-soft: #eff6ff;
+  --success: #10b981;
+  --success-soft: #ecfdf5;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+
+  /* Fuel Colors (Industry Standard) */
+  --fuel-pertalite: #22c55e;
+  --fuel-pertamax: #3b82f6;
+  --fuel-turbo: #ef4444;
+  --fuel-dex: #a855f7;
+  --fuel-solar: #f59e0b;
+
+  /* Spacing & Sizing */
+  --touch-min: 56px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --shadow-glow-blue: 0 4px 20px rgba(59,130,246,0.3);
+  --shadow-glow-green: 0 4px 20px rgba(16,185,129,0.3);
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+/* --- Night Mode (Auto via prefers-color-scheme) --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #0c0f1a;
+    --bg-card: #141829;
+    --bg-elevated: #1a1f35;
+    --bg-input: #1a1f35;
+    --border: #2a2f45;
+    --border-focus: #60a5fa;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-inverse: #0f172a;
+
+    --accent: #60a5fa;
+    --accent-hover: #3b82f6;
+    --accent-soft: rgba(59,130,246,0.15);
+    --success: #34d399;
+    --success-soft: rgba(16,185,129,0.15);
+    --danger: #f87171;
+    --danger-soft: rgba(239,68,68,0.15);
+    --warning: #fbbf24;
+    --warning-soft: rgba(245,158,11,0.15);
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+    --shadow-glow-blue: 0 4px 20px rgba(96,165,250,0.25);
+    --shadow-glow-green: 0 4px 20px rgba(52,211,153,0.25);
+
+    --background: #0c0f1a;
+    --foreground: #f1f5f9;
+  }
+}
+
+/* Dark mode class override for manual toggle */
+.dark {
+  --bg-primary: #0c0f1a;
+  --bg-card: #141829;
+  --bg-elevated: #1a1f35;
+  --bg-input: #1a1f35;
+  --border: #2a2f45;
+  --border-focus: #60a5fa;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  --accent: #60a5fa;
+  --accent-hover: #3b82f6;
+  --accent-soft: rgba(59,130,246,0.15);
+  --success: #34d399;
+  --success-soft: rgba(16,185,129,0.15);
+  --danger: #f87171;
+  --danger-soft: rgba(239,68,68,0.15);
+  --warning: #fbbf24;
+  --warning-soft: rgba(245,158,11,0.15);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --shadow-glow-blue: 0 4px 20px rgba(96,165,250,0.25);
+  --shadow-glow-green: 0 4px 20px rgba(52,211,153,0.25);
+  --background: #0c0f1a;
+  --foreground: #f1f5f9;
 }
 
 @theme inline {
@@ -12,40 +130,141 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* --- Base --- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
+/* --- Monospace Numbers (prevents layout shift) --- */
+.font-mono-num {
+  font-family: var(--font-geist-mono, 'JetBrains Mono', 'Fira Code', monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* --- Touch Target Enforcement --- */
+.touch-target {
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* --- Micro-Interaction: Button Press --- */
+.btn-press {
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* --- Micro-Interaction: Ripple Effect --- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+.ripple:active::after {
+  opacity: 1;
+}
+
+/* --- Glow Effects --- */
+.glow-blue { box-shadow: var(--shadow-glow-blue); }
+.glow-green { box-shadow: var(--shadow-glow-green); }
+
+/* --- Stock Level Indicators --- */
+.stock-high { color: var(--success); }
+.stock-medium { color: var(--warning); }
+.stock-low { color: var(--danger); }
+
+/* --- Toast Notification --- */
+.toast-enter {
+  animation: toastSlideIn 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.toast-exit {
+  animation: toastSlideOut 150ms ease-in forwards;
+}
+@keyframes toastSlideIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes toastSlideOut {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-100%); opacity: 0; }
+}
+
+/* --- Success Pop Animation (Modal) --- */
+.success-pop {
+  animation: successPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes successPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* --- Skeleton Loading --- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-card) 37%,
+    var(--bg-elevated) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonShimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- POS Card Surfaces --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-elevated {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Print Styles --- */
 @media print {
-  /* Hide everything by default */
   body * {
     visibility: hidden;
   }
-
-  /* Show only the printable area */
   .print\:block, .print\:block * {
     visibility: visible;
   }
-
-  /* Position the receipt at the very top-left */
   .print\:block {
     position: absolute;
     left: 0;
     top: 0;
-    width: 58mm; /* Standard thermal width */
-    font-family: 'Courier New', Courier, monospace; /* Monospace matches thermal font better */
+    width: 58mm;
+    font-family: 'Courier New', Courier, monospace;
   }
-
-  /* Reset page margins */
   @page {
     size: auto;
     margin: 0;

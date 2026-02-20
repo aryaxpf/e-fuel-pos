@@ -150,22 +150,24 @@ export const StorageService = {
     },
 
     getCurrentStock: async (): Promise<number> => {
-        // Fetch all logs and transactions properly
+        // Stock is tracked ONLY via inventory_logs:
+        //   IN / ADJUSTMENT → adds stock
+        //   OUT → subtracts stock (includes sales OUT logs)
+        //
+        // NOTE: We do NOT subtract transactions.liter here because each
+        // sale already creates an inventory_logs OUT record. Subtracting
+        // both would cause double-subtraction (the "100 - 1 = 98" bug).
         const logs = await StorageService.getInventoryLogs();
-        const transactions = await StorageService.getTransactions();
 
         const totalIn = logs
             .filter((l) => l.type === 'IN' || l.type === 'ADJUSTMENT')
             .reduce((acc, curr) => acc + curr.volume, 0);
 
-        const totalOut = transactions.reduce((acc, curr) => acc + curr.liter, 0);
-
-        // Also subtract manual 'OUT' logs
-        const manualOut = logs
+        const totalOut = logs
             .filter((l) => l.type === 'OUT')
             .reduce((acc, curr) => acc + curr.volume, 0);
 
-        return Number((totalIn - totalOut - manualOut).toFixed(2));
+        return Number((totalIn - totalOut).toFixed(2));
     },
 
     deleteInventoryLog: async (id: string, actor?: { id: string, username: string }) => {

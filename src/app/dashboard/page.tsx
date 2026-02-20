@@ -80,9 +80,8 @@ export default function DashboardPage() {
                     const totalRecentLiters = recentSales.reduce((acc, t) => acc + (t.liter || 0), 0);
                     const avgDailyLiters = totalRecentLiters / 7;
 
-                    // Get Current Stock (Mocked or Real)
-                    // Logs already fetched above
-                    const currentStock = logs.reduce((acc, log) => acc + (log.type === 'IN' ? log.volume : -log.volume), 0);
+                    // Get Current Stock (using canonical getCurrentStock)
+                    const currentStock = await StorageService.getCurrentStock();
 
                     if (avgDailyLiters > 0 && currentStock < (avgDailyLiters * 2)) {
                         setAiPrediction(`Stok Pertalite diprediksi habis dalam ${(currentStock / avgDailyLiters).toFixed(1)} hari.`);
