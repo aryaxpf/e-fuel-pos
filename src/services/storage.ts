@@ -35,6 +35,7 @@ export interface StoreSettings {
     taxRate: number;
     waApiKey?: string;
     ownerPhone?: string;
+    adminPin?: string;
 }
 
 const KEYS = {
@@ -403,13 +404,34 @@ export const StorageService = {
 
     // --- User Management (Phase 8) ---
     login: async (username: string, password: string): Promise<{ success: boolean; role?: 'admin' | 'cashier'; id?: string; error?: string }> => {
-        console.log("Login Attempt:", username, password); // Debug log
+        console.log("Login Attempt:", username); // Debug log (don't log password)
         const cleanUser = username.toLowerCase().trim();
 
-        // 1. GLOBAL ADMIN BYPASS REMOVED to allow password changes.
-        // The admin user is now initialized in storage below if missing.
-
         if (supabase) {
+            // === Try secure RPC first (bcrypt verification at DB level) ===
+            try {
+                const { data: rpcData, error: rpcError } = await supabase
+                    .rpc('verify_login', {
+                        p_username: cleanUser,
+                        p_password: password,
+                    });
+
+                if (!rpcError && rpcData) {
+                    if (rpcData.success) {
+                        return { success: true, role: rpcData.role, id: rpcData.id };
+                    } else {
+                        return { success: false, error: rpcData.error };
+                    }
+                }
+                // If RPC doesn't exist, fall through to legacy login
+                if (rpcError) {
+                    console.warn("verify_login RPC not available, using legacy login:", rpcError.message);
+                }
+            } catch (rpcErr) {
+                console.warn("verify_login RPC call failed, falling back:", rpcErr);
+            }
+
+            // === Fallback: Legacy direct query (plain-text comparison) ===
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
@@ -427,7 +449,6 @@ export const StorageService = {
 
                 if (createError) {
                     console.error("Auto-create Admin Failed:", createError);
-                    // Check for RLS or Table Missing
                     if (createError.code === '42P01') {
                         return { success: false, error: 'Tabel "users" tidak ditemukan. Jalankan SQL Script di Supabase!' };
                     }
@@ -442,7 +463,7 @@ export const StorageService = {
 
             if (error || !data) return { success: false, error: 'User tidak ditemukan' };
 
-            // Simple string comparison for MVP as requested
+            // Simple string comparison for legacy/un-migrated users
             if (data.password === password) {
                 return { success: true, role: data.role, id: data.id };
             } else {
@@ -455,8 +476,6 @@ export const StorageService = {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
 
         // Ensure Admin Exists (Self-Healing)
-        // If 'admin' doesn't exist, create it with default credentials
-        // This allows it to show up in the list and be editable
         if (!users.find((u: any) => u.username === 'admin')) {
             const defaultAdmin = { id: 'admin-1', username: 'admin', password: 'admin123', role: 'admin' };
             users.push(defaultAdmin);
@@ -756,7 +775,8 @@ export const StorageService = {
                 enableTax: data.enable_tax,
                 taxRate: data.tax_rate,
                 waApiKey: data.wa_api_key,
-                ownerPhone: data.owner_phone
+                ownerPhone: data.owner_phone,
+                adminPin: data.admin_pin,
             };
         }
         return JSON.parse(localStorage.getItem('efuel_settings') || 'null');
@@ -776,6 +796,7 @@ export const StorageService = {
             tax_rate: settings.taxRate,
             wa_api_key: settings.waApiKey,
             owner_phone: settings.ownerPhone,
+            admin_pin: settings.adminPin,
             updated_at: new Date().toISOString()
         };
 
@@ -885,7 +906,8 @@ export const StorageService = {
             action: action,
             details: details,
             created_at: new Date().toISOString(),
-            ip_address: 'client-side' // reliable IP requires server-side
+            ip_address: 'client-side', // reliable IP requires server-side
+            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
         };
 
         if (supabase) {

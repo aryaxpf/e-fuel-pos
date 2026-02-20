@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { Lock, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { StorageService } from '../services/storage';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [pin, setPin] = useState('');
     const [error, setError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [adminPin, setAdminPin] = useState<string>('123456'); // Fallback default
 
     useEffect(() => {
         // Check session storage on mount
@@ -17,13 +19,21 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (authList === 'true') {
             setIsAuthenticated(true);
         }
+
+        // Load dynamic admin PIN from store settings
+        StorageService.getStoreSettings().then((settings) => {
+            if (settings?.adminPin) {
+                setAdminPin(settings.adminPin);
+            }
+        });
+
         setIsLoading(false);
     }, []);
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // HARDCODED PIN FOR MVP
-        if (pin === '123456') {
+        // Dynamic PIN from store_settings, fallback to '123456' for migration
+        if (pin === adminPin) {
             sessionStorage.setItem('efuel_admin_auth', 'true');
             setIsAuthenticated(true);
             setError(false);
@@ -59,8 +69,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
                                 }}
                                 maxLength={6}
                                 className={`w-full text-center text-3xl tracking-widest font-bold py-4 rounded-xl border-2 outline-none transition focus:ring-4 ${error
-                                        ? 'border-red-300 bg-red-50 focus:ring-red-100 text-red-600'
-                                        : 'border-slate-200 focus:border-blue-500 focus:ring-blue-50 text-slate-800'
+                                    ? 'border-red-300 bg-red-50 focus:ring-red-100 text-red-600'
+                                    : 'border-slate-200 focus:border-blue-500 focus:ring-blue-50 text-slate-800'
                                     }`}
                                 placeholder="• • • • • •"
                                 autoFocus

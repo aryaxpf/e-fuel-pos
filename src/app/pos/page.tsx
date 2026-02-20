@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import { calculateTransaction, TransactionResult } from '../../lib/fuel-logic';
 import { StorageService } from '../../services/storage';
+import { TransactionService } from '../../services/transactionService';
 import { Fuel, Delete, ChevronRight, Zap } from 'lucide-react';
 import TransactionSuccessModal from '../../components/TransactionSuccessModal';
 import { playSuccessSound } from '../../utils/sound';
@@ -138,29 +139,39 @@ export default function POSPage() {
     };
 
     const handleProcess = async () => {
-        if (!result || result.nominal === 0) return;
-
-        if (result.liter > currentStock) {
-            alert(`Stok tidak cukup! Sisa: ${currentStock} Liter.`);
-            return;
-        }
+        if (!result || result.nominal === 0 || !user) return;
 
         try {
-            // 1. Save to Storage
-            await StorageService.addTransaction(result);
-            await StorageService.addInventoryLog({
-                type: 'OUT',
-                volume: result.liter,
-                costPerLiter: 0, // Not needed for OUT
-                notes: 'Sales Transaction'
+            // Use centralized TransactionService:
+            // - Server-side price calculation (prevents price manipulation)
+            // - Stock guard (prevents negative stock)
+            // - RBAC check (role-based access)
+            // - Audit trail logging
+            const txResult = await TransactionService.processTransaction({
+                amount: result.nominal,
+                paymentMethod: 'CASH',
+                actor: {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role,
+                },
             });
 
-            // 2. Play Sound & Show Modal
+            if (!txResult.success) {
+                alert(txResult.error || 'Gagal memproses transaksi');
+                return;
+            }
+
+            // Play Sound & Show Modal
             playSuccessSound();
-            setLastTransaction({ nominal: result.nominal, liter: result.liter, profit: result.profit });
+            setLastTransaction({
+                nominal: txResult.record!.nominal,
+                liter: txResult.record!.liter,
+                profit: txResult.record!.profit,
+            });
             setShowModal(true);
 
-            // 3. Update stock locally
+            // Update stock locally
             await updateStock();
         } catch (error) {
             console.error("Transaction failed", error);
