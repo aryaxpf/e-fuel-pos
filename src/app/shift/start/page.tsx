@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { StorageService } from '../../../services/storage';
-import { ArrowLeft, Wallet } from 'lucide-react';
+import { ArrowLeft, Wallet, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function StartShiftPage() {
@@ -12,7 +12,7 @@ export default function StartShiftPage() {
     const { user, loading: authLoading } = useAuth();
     const [initialCash, setInitialCash] = useState('');
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false); // Success State
+    const [success, setSuccess] = useState(false);
 
     // Redirect if not logged in
     useEffect(() => {
@@ -41,7 +41,6 @@ export default function StartShiftPage() {
                 Number(initialCash.replace(/\D/g, '')),
                 user.username
             );
-            // Replace alert with Success UI
             setSuccess(true);
             setTimeout(() => {
                 router.push('/dashboard');
@@ -53,22 +52,21 @@ export default function StartShiftPage() {
         }
     };
 
-    if (authLoading || !user) return <div className="min-h-screen flex items-center justify-center p-8 text-slate-500">Memuat Data User...</div>;
+    if (authLoading || !user) return <div className="min-h-screen flex items-center justify-center p-8 page-fade-in" style={{ color: 'var(--text-muted)' }}>Memuat Data User...</div>;
 
     if (success) {
         return (
-            <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in duration-300">
-                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
+            <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
+                <div className="w-full max-w-md p-8 text-center animate-in fade-in zoom-in duration-300 rounded-3xl shadow-xl" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
+                    <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
+                        <CheckCircle size={48} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Shift Berhasil Dibuka!</h1>
-                    <p className="text-slate-500 mb-6">Selamat bekerja, {user.username}.</p>
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <p className="text-xs text-slate-400 font-bold uppercase">Modal Awal</p>
-                        <p className="text-xl font-bold text-slate-800">Rp {Number(initialCash.replace(/\D/g, '')).toLocaleString()}</p>
+                    <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Shift Dibuka!</h1>
+                    <p className="mb-8 font-medium" style={{ color: 'var(--text-secondary)' }}>Selamat bertugas, {user.username}.</p>
+
+                    <div className="p-6 rounded-2xl" style={{ background: 'var(--bg-secondary)', border: '1px dashed var(--border-color)' }}>
+                        <p className="text-sm font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Modal Awal Laci</p>
+                        <p className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {Number(initialCash.replace(/\D/g, '')).toLocaleString()}</p>
                     </div>
                 </div>
             </div>
@@ -76,51 +74,74 @@ export default function StartShiftPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-                <div className="bg-blue-600 p-6 text-white text-center">
-                    <Wallet size={48} className="mx-auto mb-4 opacity-80" />
-                    <h1 className="text-2xl font-bold">Mulai Shift Baru</h1>
-                    <p className="opacity-90 mt-1">Halo, {user.username}!</p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
+            <div className="w-full max-w-md page-fade-in">
+                {/* Back Button */}
+                <Link href="/dashboard" className="inline-flex items-center gap-2 font-bold mb-6 transition-colors hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                    <ArrowLeft size={20} /> Kembali ke Dashboard
+                </Link>
 
-                <div className="p-8">
-                    <form onSubmit={handleStartShift}>
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Uang Modal Awal (Di Laci)
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-3 text-slate-500 font-bold">Rp</span>
-                                <input
-                                    type="number"
-                                    required
-                                    value={initialCash}
-                                    onChange={(e) => setInitialCash(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-lg font-bold text-slate-800"
-                                    placeholder="0"
-                                />
-                            </div>
-                            <p className="text-xs text-slate-500 mt-2">
-                                Masukkan jumlah uang tunai yang ada di laci kasir sebelum memulai transaksi.
-                            </p>
+                <div className="rounded-3xl shadow-2xl overflow-hidden transition-all duration-300" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
+
+                    {/* Header Banner */}
+                    <div className="p-8 pb-10 text-center relative overflow-hidden">
+                        {/* Background pattern */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--accent) 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
+
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10" style={{ background: 'var(--bg-secondary)', color: 'var(--accent)', border: '1px solid var(--border-color)' }}>
+                            <Wallet size={36} />
                         </div>
+                        <h1 className="text-2xl font-bold relative z-10" style={{ color: 'var(--text-primary)' }}>Mulai Shift Baru</h1>
+                        <p className="font-medium mt-1 relative z-10" style={{ color: 'var(--text-secondary)' }}>Kasir: <span style={{ color: 'var(--accent)' }}>{user.username}</span></p>
+                    </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`w-full py-4 rounded-xl font-bold text-lg text-white transition shadow-lg
-                                ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200'}
-                            `}
-                        >
-                            {loading ? 'Memproses...' : 'Buka Shift Sekarang'}
-                        </button>
-                    </form>
+                    <div className="p-8 pt-0 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                        <form onSubmit={handleStartShift} className="mt-8">
+                            <div className="mb-8">
+                                <label className="block text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
+                                    Uang Modal Awal (Di Laci)
+                                </label>
+                                <div className="relative group">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-lg transition-colors duration-300" style={{ color: 'var(--text-muted)' }}>Rp</span>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={initialCash}
+                                        onChange={(e) => setInitialCash(e.target.value)}
+                                        className="w-full pl-14 pr-4 py-4 rounded-2xl outline-none transition-all duration-300 font-black text-2xl"
+                                        style={{
+                                            background: 'var(--bg-secondary)',
+                                            border: '2px solid transparent',
+                                            color: 'var(--text-primary)',
+                                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                                        }}
+                                        placeholder="0"
+                                    />
+                                    {/* Focus Border glow effect */}
+                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
+                                </div>
+                                <p className="text-xs font-medium mt-3 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                                    Masukkan jumlah fisik uang pecahan yang ada di laci kasir sebelum Anda menerima pembayaran pertama.
+                                </p>
+                            </div>
 
-                    <div className="mt-6 text-center">
-                        <Link href="/dashboard" className="text-slate-400 hover:text-slate-600 text-sm inline-flex items-center gap-1">
-                            <ArrowLeft size={14} /> Batalkan / Kembali ke Dashboard
-                        </Link>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn-press w-full font-bold text-lg text-white py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                style={{
+                                    background: 'var(--accent)',
+                                    boxShadow: '0 8px 25px -5px var(--accent)',
+                                    minHeight: 'var(--touch-min)',
+                                }}
+                            >
+                                {loading ? (
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <>Buka Shift Sekarang <CheckCircle size={20} /></>
+                                )}
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

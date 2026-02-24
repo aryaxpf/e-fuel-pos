@@ -2,7 +2,7 @@ import { TransactionResult } from '../lib/fuel-logic';
 import { supabase } from '../lib/supabase';
 import { SyncService } from './sync';
 import { TransactionSchema, InventorySchema } from '../lib/validation';
-
+import { LoggerService } from './logger';
 export interface InventoryLog {
     id: string;
     date: string;
@@ -116,7 +116,14 @@ export const StorageService = {
                     .single();
 
                 if (error) throw error;
-                return { ...log, id: data.id, date: data.date } as InventoryLog;
+                const newLog = { ...log, id: data.id, date: data.date } as InventoryLog;
+
+                // Track Audit Log
+                const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
+                const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+                LoggerService.logAction(actorId, 'RESTOCK', null, newLog);
+
+                return newLog;
             } catch (err) {
                 console.warn("Supabase addInventoryLog failed, falling back:", err);
                 useLocal = true;
@@ -144,6 +151,12 @@ export const StorageService = {
                 };
                 SyncService.addToQueue('INSERT_INVENTORY', payload);
             }
+
+            // Track Audit Log
+            const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
+            const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+            LoggerService.logAction(actorId, 'RESTOCK', null, newLog);
+
             return newLog;
         }
         throw new Error("Storage Error");
@@ -602,6 +615,7 @@ export const StorageService = {
         if (supabase) {
             const { data, error } = await supabase.from('shifts').insert(shift).select().single();
             if (error) throw error;
+            LoggerService.logAction(userId, 'SHIFT_START', null, data);
             return data;
         }
 
@@ -609,6 +623,7 @@ export const StorageService = {
         const newShift = { ...shift, id: generateId() };
         shifts.unshift(newShift);
         localStorage.setItem('efuel_shifts', JSON.stringify(shifts));
+        LoggerService.logAction(userId, 'SHIFT_START', null, newShift);
         return newShift;
     },
 
@@ -653,6 +668,11 @@ export const StorageService = {
                 localStorage.setItem('efuel_shifts', JSON.stringify(shifts));
             }
         }
+
+        // Track Audit Log
+        const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
+        const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+        LoggerService.logAction(actorId, 'SHIFT_END', null, { shiftId, ...updates });
     },
 
     getShiftHistory: async () => {
@@ -968,5 +988,92 @@ export const StorageService = {
         }
 
         return data;
+    },
+
+    // =========================================================================
+    // ANALYTICS & AGGREGATION (For Dashboard Graphics)
+    // =========================================================================
+
+    getTransactionsByHour: async (date = new Date()) => {
+        const txs = await StorageService.getTransactions();
+
+        // Filter transactions for the specified date
+        const targetDateString = date.toISOString().split('T')[0];
+        const dayTxs = txs.filter((tx: any) =>
+            tx.timestamp.startsWith(targetDateString) && tx.status !== 'VOID'
+        );
+
+        // Initialize 24-hour buckets
+        const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+            hour: `${i.toString().padStart(2, '0')}:00`,
+            volume: 0,
+            transactions: 0
+        }));
+
+        dayTxs.forEach((tx: any) => {
+            const hour = new Date(tx.timestamp).getHours();
+            if (hour >= 0 && hour < 24) {
+                hourlyData[hour].volume += tx.liter;
+                hourlyData[hour].transactions += 1;
+            }
+        });
+
+        return hourlyData;
+    },
+
+    getRevenueAndProfitByDay: async (days = 7) => {
+        const txs = await StorageService.getTransactions();
+        const result = [];
+        const today = new Date();
+
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            const dayTxs = txs.filter((tx: any) =>
+                tx.timestamp.startsWith(dateStr) && tx.status !== 'VOID'
+            );
+
+            const revenue = dayTxs.reduce((sum: number, tx: any) => sum + tx.nominal, 0);
+            const profit = dayTxs.reduce((sum: number, tx: any) => sum + tx.profit, 0);
+
+            result.push({
+                date: d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
+                revenue,
+                profit
+            });
+        }
+
+        return result;
+    },
+
+    getOperatorPerformance: async (hoursBack = 24) => {
+        const txs = await StorageService.getTransactions();
+
+        const cutoff = new Date();
+        cutoff.setHours(cutoff.getHours() - hoursBack);
+
+        const recentTxs = txs.filter((tx: any) =>
+            new Date(tx.timestamp) >= cutoff
+        );
+
+        const operators: Record<string, { username: string, volume: number, count: number, voids: number }> = {};
+
+        recentTxs.forEach((tx: any) => {
+            const username = tx.actor?.username || 'Unknown';
+            if (!operators[username]) {
+                operators[username] = { username, volume: 0, count: 0, voids: 0 };
+            }
+
+            if (tx.status === 'VOID') {
+                operators[username].voids += 1;
+            } else {
+                operators[username].volume += tx.liter;
+                operators[username].count += 1;
+            }
+        });
+
+        return Object.values(operators).sort((a, b) => b.volume - a.volume);
     }
 };

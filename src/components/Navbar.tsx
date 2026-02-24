@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import { LayoutDashboard, Wifi, WifiOff, RefreshCw, Fuel } from 'lucide-react';
+import { LayoutDashboard, Wifi, WifiOff, RefreshCw, Fuel, Sun, Moon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { StorageService } from '../services/storage';
 import { SyncService } from '../services/sync';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
+    const { theme, toggleTheme } = useTheme();
     const [storeName, setStoreName] = useState('E-Fuel POS');
     const [isOnline, setIsOnline] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -62,21 +64,36 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="sticky top-0 z-50 backdrop-blur-xl" style={{ background: 'rgba(15,23,42,0.95)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="container mx-auto flex justify-between items-center h-12 px-4">
+        <nav className="sticky top-0 z-50 backdrop-blur-xl" style={{ background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)' }}>
+            <div className="flex justify-between items-center h-12 px-4">
                 {/* Brand */}
                 <Link href="/dashboard" className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent)' }}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--nav-accent)' }}>
                         <Fuel size={14} className="text-white" />
                     </div>
-                    <h1 className="text-sm font-bold text-white tracking-tight">
-                        <span style={{ color: 'var(--accent)' }}>{storeName.split(' ')[0]}</span>{' '}
-                        <span className="text-slate-300">{storeName.split(' ').slice(1).join(' ')}</span>
+                    <h1 className="text-sm font-bold tracking-tight">
+                        <span style={{ color: 'var(--nav-accent)' }}>{storeName.split(' ')[0]}</span>{' '}
+                        <span style={{ color: 'var(--nav-text)' }}>{storeName.split(' ').slice(1).join(' ')}</span>
                     </h1>
                 </Link>
 
-                {/* Right: Stock + Sync + Nav */}
-                <div className="flex gap-4 items-center">
+                {/* Right: Theme + Stock + Sync + Nav */}
+                <div className="flex gap-3 items-center">
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:scale-110"
+                        style={{
+                            background: theme === 'dark' ? 'rgba(212,160,58,0.15)' : 'rgba(108,155,207,0.15)',
+                            color: theme === 'dark' ? '#D4A03A' : '#6C9BCF',
+                        }}
+                        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    >
+                        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                    </button>
+
+                    <div className="h-4 w-px" style={{ background: 'var(--border)' }} />
+
                     {/* Stock Badge */}
                     {currentStock !== null && (
                         <div className="flex items-center gap-1.5 text-xs font-bold font-mono-num" style={{ color: getStockColor() }}>
@@ -102,9 +119,9 @@ export default function Navbar() {
                         <span className="hidden sm:inline font-bold">{isOnline ? 'ON' : 'OFF'}</span>
                     </button>
 
-                    <div className="h-4 w-px bg-slate-700" />
+                    <div className="h-4 w-px" style={{ background: 'var(--border)' }} />
 
-                    <Link href="/dashboard" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors text-xs">
+                    <Link href="/dashboard" className="flex items-center gap-1.5 transition-colors text-xs hover:opacity-80" style={{ color: 'var(--nav-text)' }}>
                         <LayoutDashboard size={16} />
                         <span className="hidden sm:inline font-medium">Menu</span>
                     </Link>
