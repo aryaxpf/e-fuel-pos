@@ -26,6 +26,11 @@ export default function ProductsPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductWithStock | null>(null);
 
+    // Restock Modal state
+    const [restockProduct, setRestockProduct] = useState<ProductWithStock | null>(null);
+    const [restockQty, setRestockQty] = useState('');
+    const [restockTotalCost, setRestockTotalCost] = useState('');
+
     // Form state
     const [formData, setFormData] = useState({
         name: '',
@@ -130,6 +135,36 @@ export default function ProductsPage() {
         }
     };
 
+    const handleRestockSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !restockProduct) return;
+
+        const qty = Number(restockQty);
+        const cost = Number(restockTotalCost);
+
+        if (qty <= 0) {
+            showToast('Jumlah restock harus lebih dari 0', 'error');
+            return;
+        }
+
+        try {
+            await ProductService.restockProduct(
+                restockProduct.id,
+                qty,
+                cost,
+                `Restock via Katalog`,
+                user as any
+            );
+            showToast(`Berhasil menambah ${qty} ${restockProduct.unit} ${restockProduct.name}`, 'success');
+            setRestockProduct(null);
+            setRestockQty('');
+            setRestockTotalCost('');
+            loadProducts();
+        } catch (error: any) {
+            showToast(error.message || 'Gagal melakukan restock', 'error');
+        }
+    };
+
     const handleDelete = async (id: string, name: string) => {
         if (!user) return;
         if (!window.confirm(`Yakin ingin menonaktifkan barang "${name}"? Barang yang sudah ada transaksinya tidak bisa dihapus permanen, hanya disembunyikan.`)) {
@@ -165,7 +200,7 @@ export default function ProductsPage() {
                         </Link>
                         <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
                             <Package className="text-blue-600" />
-                            Master Barang
+                            Katalog Barang
                         </h1>
                         <p className="text-slate-500 mt-1">Kelola katalog sparepart, aksesoris, dan produk lainnya.</p>
                     </div>
@@ -222,6 +257,7 @@ export default function ProductsPage() {
                                     <th className="p-4 font-medium">Kategori</th>
                                     <th className="p-4 font-medium">Harga Beli</th>
                                     <th className="p-4 font-medium">Harga Jual</th>
+                                    <th className="p-4 font-medium">Margin</th>
                                     <th className="p-4 font-medium">Stok</th>
                                     <th className="p-4 font-medium text-right pr-6">Aksi</th>
                                 </tr>
@@ -254,6 +290,14 @@ export default function ProductsPage() {
                                                 Rp {p.sell_price.toLocaleString('id-ID')}
                                             </td>
                                             <td className="p-4">
+                                                <div className="font-medium text-emerald-600">
+                                                    Rp {(p.sell_price - p.buy_price).toLocaleString('id-ID')}
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-0.5">
+                                                    {p.buy_price > 0 ? Math.round(((p.sell_price - p.buy_price) / p.buy_price) * 100) : 100}%
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
                                                 {p.current_stock <= p.min_stock ? (
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-700 text-sm rounded-lg font-bold border border-red-100">
                                                         <AlertTriangle size={14} />
@@ -268,6 +312,14 @@ export default function ProductsPage() {
                                             </td>
                                             <td className="p-4 pr-6 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition">
+                                                    <button
+                                                        onClick={() => setRestockProduct(p)}
+                                                        className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition flex items-center gap-1 mr-2"
+                                                        title="Restock Item Ini"
+                                                    >
+                                                        <Plus size={14} />
+                                                        Restock
+                                                    </button>
                                                     <button
                                                         onClick={() => handleOpenModal(p)}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -400,6 +452,67 @@ export default function ProductsPage() {
                                 </button>
                                 <button type="submit" className="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-md transition">
                                     Simpan Barang
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Restock Inline Modal */}
+            {restockProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50 text-emerald-800">
+                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                <Package size={20} />
+                                Restock Cepat
+                            </h2>
+                            <button onClick={() => { setRestockProduct(null); setRestockQty(''); setRestockTotalCost(''); }} className="text-emerald-600 hover:text-emerald-800 p-1">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleRestockSubmit} className="p-6 space-y-4">
+                            <div>
+                                <h3 className="font-bold text-slate-800">{restockProduct.name}</h3>
+                                <p className="text-xs text-slate-500 mt-0.5">Stok saat ini: {restockProduct.current_stock} {restockProduct.unit}</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Jumlah Restock ({restockProduct.unit}) *</label>
+                                <input
+                                    type="number" required min="1"
+                                    value={restockQty} onChange={e => setRestockQty(e.target.value)}
+                                    placeholder="cth: 50"
+                                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Total Modal Restock (Rp) *</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">Rp</span>
+                                    <input
+                                        type="number" required min="0" step="100"
+                                        value={restockTotalCost} onChange={e => setRestockTotalCost(e.target.value)}
+                                        placeholder="cth: 2000000"
+                                        className="w-full pl-9 p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-mono"
+                                    />
+                                </div>
+                                {Number(restockQty) > 0 && Number(restockTotalCost) > 0 && (
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        Modal per {restockProduct.unit}: Rp {Math.round(Number(restockTotalCost) / Number(restockQty)).toLocaleString('id-ID')}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button type="button" onClick={() => { setRestockProduct(null); setRestockQty(''); setRestockTotalCost(''); }} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
+                                    Batal
+                                </button>
+                                <button type="submit" className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition">
+                                    Simpan
                                 </button>
                             </div>
                         </form>
