@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
             if (user) {
                 router.replace('/dashboard');
             } else {
-                setAuthorized(true);
+                setTimeout(() => setAuthorized(true), 0);
             }
             return;
         }
@@ -40,7 +40,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
             return;
         }
 
-        setAuthorized(true);
+        setTimeout(() => setAuthorized(true), 0);
     }, [user, loading, pathname, router]);
 
     // Show blank/loader while evaluating auth

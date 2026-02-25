@@ -34,15 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 const savedUser = decryptData(savedUserStr);
                 // Validate if user has ID (Migrate old sessions)
                 if (savedUser && savedUser.id) {
-                    setUser(savedUser);
+                    setTimeout(() => setUser(savedUser), 0);
                 } else {
                     // Invalid/Old session, clear it
                     sessionStorage.removeItem('efuel_user');
-                    setUser(null);
+                    setTimeout(() => setUser(null), 0);
                 }
             } catch (e) {
                 sessionStorage.removeItem('efuel_user');
-                setUser(null);
+                setTimeout(() => setUser(null), 0);
             }
         }
         setLoading(false);

@@ -19,6 +19,15 @@ const ThemeContext = createContext<ThemeContextValue>({
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setThemeState] = useState<Theme>('light');
 
+    const applyTheme = (t: Theme) => {
+        const html = document.documentElement;
+        if (t === 'dark') {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+    };
+
     // Initialize from localStorage on mount
     useEffect(() => {
         const stored = localStorage.getItem('efuel-theme') as Theme | null;
@@ -33,15 +42,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             applyTheme(initial);
         }
     }, []);
-
-    const applyTheme = (t: Theme) => {
-        const html = document.documentElement;
-        if (t === 'dark') {
-            html.classList.add('dark');
-        } else {
-            html.classList.remove('dark');
-        }
-    };
 
     const setTheme = (t: Theme) => {
         setThemeState(t);

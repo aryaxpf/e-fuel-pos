@@ -17,7 +17,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         // Check session storage on mount
         const authList = sessionStorage.getItem('efuel_admin_auth');
         if (authList === 'true') {
-            setIsAuthenticated(true);
+            setTimeout(() => setIsAuthenticated(true), 0);
         }
 
         // Load dynamic admin PIN from store settings

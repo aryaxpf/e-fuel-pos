@@ -1,0 +1,231 @@
+
+> e-fuel-pos@0.1.0 lint
+> eslint
+
+
+C:\Users\yourp\Downloads\e-fuel-pos\jest.config.js
+  1:33  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\yourp\Downloads\e-fuel-pos\mobile-app\app\attendance\index.tsx
+   26:8   warning  React Hook useEffect has a missing dependency: 'checkUserAndLog'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  146:21  warning  Image elements must have an alt prop, either with meaningful text, or an empty string for decorative images         jsx-a11y/alt-text
+
+C:\Users\yourp\Downloads\e-fuel-pos\mobile-app\app\dashboard\index.tsx
+  14:9  error    Error: Cannot access variable before it is declared
+
+`checkUser` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\Users\yourp\Downloads\e-fuel-pos\mobile-app\app\dashboard\index.tsx:14:9
+  12 |
+  13 |     useEffect(() => {
+> 14 |         checkUser();
+     |         ^^^^^^^^^ `checkUser` accessed before it is declared
+  15 |     }, []);
+  16 |
+  17 |     async function checkUser() {
+
+C:\Users\yourp\Downloads\e-fuel-pos\mobile-app\app\dashboard\index.tsx:17:5
+  15 |     }, []);
+  16 |
+> 17 |     async function checkUser() {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 18 |         const { data: { user } } = await supabase.auth.getUser();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 19 |         if (!user) {
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |         // For now, let's just use user metadata or email
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |     }
+     | ^^^^^^ `checkUser` is declared here
+  29 |
+  30 |     async function handleLogout() {
+  31 |         await supabase.auth.signOut();  react-hooks/immutability
+  15:8  warning  React Hook useEffect has a missing dependency: 'checkUser'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+C:\Users\yourp\Downloads\e-fuel-pos\mobile-app\services\attendance.ts
+  37:11  error  Parsing error: ':' expected
+
+C:\Users\yourp\Downloads\e-fuel-pos\next.config.ts
+  3:17  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\yourp\Downloads\e-fuel-pos\public\sw.js
+  1:156   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:209   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:626   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:6521  warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:6540  warning  'a' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:6548  warning  'n' is defined but never used                                          @typescript-eslint/no-unused-vars
+
+C:\Users\yourp\Downloads\e-fuel-pos\public\workbox-4754cb34.js
+  1:49     warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:87     warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:211    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:257    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:298    warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:381    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:642    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:813    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:989    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:1093   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:1738   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:2263   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:3058   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:3102   warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:3598   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:3727   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:7052   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:7234   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:7954   warning  'i' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:7962   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:8066   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:8368   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:9440   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:9550   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:9566   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:9627   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:9962   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:10038  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:10065  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:10081  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:10163  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:10963  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11007  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:11122  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11194  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11301  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11382  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11623  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:11941  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:12060  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:12464  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:12684  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:13012  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:13272  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:13319  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:13367  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:14423  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:14555  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:14599  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:15097  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:15191  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:15404  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:15514  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:16025  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:16057  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:16165  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:16591  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:16958  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:17076  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:17178  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:17458  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:17719  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:17903  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:19089  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20040  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20129  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20260  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20317  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20514  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20635  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20768  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:20988  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:21080  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:21657  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:21768  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:21988  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:22227  warning  'e' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:22385  warning  's' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:22450  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:22748  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:22962  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  1:23349  warning  't' is defined but never used                                          @typescript-eslint/no-unused-vars
+  1:23479  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\dashboard\page.tsx
+  46:8  warning  React Hook useEffect has a missing dependency: 'loadDashboard'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\debts\page.tsx
+  38:9  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\pos\page.tsx
+  169:8  warning  React Hook useEffect has a missing dependency: 'handleProcess'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\reports\page.tsx
+  280:8  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\requests\page.tsx
+  36:17  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\app\requests\page.tsx:36:17
+  34 |                 router.push('/dashboard');
+  35 |             } else {
+> 36 |                 fetchRequests();
+     |                 ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |             }
+  38 |         }
+  39 |     }, [user, authLoading, router]);  react-hooks/set-state-in-effect
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\components\AdminGuard.tsx
+  30:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\components\AdminGuard.tsx:30:9
+  28 |         });
+  29 |
+> 30 |         setIsLoading(false);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |     }, []);
+  32 |
+  33 |     const handleLogin = (e: React.FormEvent) => {  react-hooks/set-state-in-effect
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\context\AuthContext.tsx
+  48:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\context\AuthContext.tsx:48:9
+  46 |             }
+  47 |         }
+> 48 |         setLoading(false);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |     }, []);
+  50 |
+  51 |     const login = async (username: string, pass: string) => {  react-hooks/set-state-in-effect
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\context\ThemeContext.tsx
+  35:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\yourp\Downloads\e-fuel-pos\src\context\ThemeContext.tsx:35:13
+  33 |         const stored = localStorage.getItem('efuel-theme') as Theme | null;
+  34 |         if (stored === 'dark' || stored === 'light') {
+> 35 |             setThemeState(stored);
+     |             ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |             applyTheme(stored);
+  37 |         } else {
+  38 |             // Respect system preference on first visit  react-hooks/set-state-in-effect
+
+✖ 104 problems (8 errors, 96 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

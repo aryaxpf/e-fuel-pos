@@ -31,7 +31,7 @@ export default function AttendancePage() {
                 (err) => setErrorMessage('Gagal mendapatkan lokasi GPS. Pastikan izin lokasi aktif.')
             );
         } else {
-            setErrorMessage('Browser tidak mendukung Geolocation.');
+            setTimeout(() => setErrorMessage('Browser tidak mendukung Geolocation.'), 0);
         }
 
         return () => {
@@ -96,8 +96,8 @@ export default function AttendancePage() {
                 setStatus('IDLE');
                 setSelectedEmployee('');
             }, 3000);
-        } catch (error: any) {
-            setErrorMessage(error.message || 'Gagal menyimpan presensi.');
+        } catch (error) {
+            setErrorMessage((error as Error).message || 'Gagal menyimpan presensi.');
         }
     };
 
@@ -198,6 +198,7 @@ export default function AttendancePage() {
                             </>
                         ) : (
                             <div className="relative rounded-lg overflow-hidden aspect-video mb-4">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={photoData} alt="Selfie" className="w-full h-full object-cover" />
                                 <button
                                     onClick={() => { setPhotoData(null); startCamera(); }}

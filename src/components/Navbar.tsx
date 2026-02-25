@@ -16,7 +16,7 @@ export default function Navbar() {
         SyncService.init();
 
         if (typeof window !== 'undefined') {
-            setIsOnline(navigator.onLine);
+            setTimeout(() => setIsOnline(navigator.onLine), 0);
         }
 
         const handleOnline = () => {
