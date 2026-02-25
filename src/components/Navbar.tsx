@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
     const { theme, toggleTheme } = useTheme();
-    const [storeName, setStoreName] = useState('E-Fuel POS');
+    const [storeName, setStoreName] = useState('Smart POS');
     const [isOnline, setIsOnline] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [currentStock, setCurrentStock] = useState<number | null>(null);

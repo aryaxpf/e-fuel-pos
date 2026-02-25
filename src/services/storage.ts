@@ -1107,5 +1107,29 @@ export const StorageService = {
         });
 
         return Object.values(operators).sort((a, b) => b.volume - a.volume);
+    },
+
+    getTopSellingProducts: async (daysBack = 30) => {
+        const prodTxs = await ProductService.getProductTransactionsForReports();
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - daysBack);
+
+        const recentProdTxs = prodTxs.filter((tx: any) => new Date(tx.timestamp) >= cutoff && tx.status !== 'VOID');
+
+        const products: Record<string, { name: string, quantity: number, revenue: number }> = {};
+
+        recentProdTxs.forEach((tx: any) => {
+            tx.items.forEach((item: any) => {
+                if (!products[item.product_id]) {
+                    products[item.product_id] = { name: item.name, quantity: 0, revenue: 0 };
+                }
+                products[item.product_id].quantity += item.quantity;
+                products[item.product_id].revenue += item.total_price;
+            });
+        });
+
+        return Object.values(products)
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10); // Top 10
     }
 };

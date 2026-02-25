@@ -6,9 +6,10 @@ import Link from 'next/link';
 import {
     Fuel, ArrowRightLeft, ClipboardList, Package, BarChart3,
     Settings, ShieldCheck, Wallet, Users, AlertTriangle, Zap,
-    TrendingUp, Activity
+    TrendingUp, Activity, RefreshCw
 } from 'lucide-react';
 import { StorageService } from '../../services/storage';
+import { SyncService } from '../../services/sync';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import {
@@ -28,7 +29,9 @@ export default function DashboardPage() {
     const [hourlyData, setHourlyData] = useState<any[]>([]);
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [operatorData, setOperatorData] = useState<any[]>([]);
+    const [topProducts, setTopProducts] = useState<any[]>([]);
     const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const TANK_CAPACITY = 2000; // Assume 2000L tank capacity
 
@@ -89,6 +92,9 @@ export default function DashboardPage() {
 
             const ops = await StorageService.getOperatorPerformance(24);
             setOperatorData(ops);
+
+            const topSales = await StorageService.getTopSellingProducts(30);
+            setTopProducts(topSales);
         } catch (error) {
             console.error('Analytics load error:', error);
         } finally {
@@ -128,7 +134,7 @@ export default function DashboardPage() {
                                 <p className="text-xs font-bold uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                                     Halo, <span style={{ color: 'var(--accent)' }}>{user.username}</span> ({user.role})
                                 </p>
-                                <h1 className="page-title mt-1">Dashboard Ops</h1>
+                                <h1 className="page-title mt-1">Smart POS Dashboard</h1>
                             </div>
                             <button
                                 onClick={async () => { await logout(); router.push('/login'); }}
@@ -213,14 +219,36 @@ export default function DashboardPage() {
                         </div>
                     </Link>
                     {user.role === 'admin' && (
-                        <Link href="/admin" className="menu-card group !p-4">
-                            <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
-                                <Settings size={22} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Admin</h3>
-                            </div>
-                        </Link>
+                        <>
+                            <Link href="/admin/products" className="menu-card group !p-4">
+                                <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: 'var(--emerald-50)', color: 'var(--emerald-600)' }}>
+                                    <Package size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Katalog Barang</h3>
+                                </div>
+                            </Link>
+                            <button onClick={async () => {
+                                setIsSyncing(true);
+                                await SyncService.processQueue();
+                                setTimeout(() => setIsSyncing(false), 800);
+                            }} className="menu-card group !p-4 text-left border-none w-full">
+                                <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: 'var(--indigo-50)', color: 'var(--indigo-600)' }}>
+                                    <RefreshCw size={22} className={isSyncing ? 'animate-spin' : ''} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Sinkronisasi</h3>
+                                </div>
+                            </button>
+                            <Link href="/admin" className="menu-card group !p-4">
+                                <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                                    <Settings size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Admin</h3>
+                                </div>
+                            </Link>
+                        </>
                     )}
                 </div>
 
@@ -358,6 +386,44 @@ export default function DashboardPage() {
                                         )) : (
                                             <tr>
                                                 <td colSpan={3} className="text-center py-8 text-slate-400">Belum ada data 24 jam terakhir</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* 5. Top Selling Products (Bar/List) */}
+                        <div className="data-card overflow-hidden flex flex-col lg:col-span-2">
+                            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/10">
+                                <h3 className="font-bold text-sm" style={{ color: 'var(--emerald-700)' }}>Barang Terlaris (30 Hari)</h3>
+                                <Package size={16} style={{ color: 'var(--emerald-600)' }} />
+                            </div>
+                            <div className="overflow-x-auto flex-1 p-2">
+                                <table className="data-table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Barang</th>
+                                            <th className="text-right">Terjual</th>
+                                            <th className="text-right">Total Revenue</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {topProducts.length > 0 ? topProducts.map((p, i) => (
+                                            <tr key={i}>
+                                                <td className="font-bold text-slate-800 dark:text-slate-200">
+                                                    {p.name}
+                                                </td>
+                                                <td className="text-right font-mono-num font-bold" style={{ color: 'var(--emerald-600)' }}>
+                                                    {p.quantity} <span className="text-xs font-normal">PCS/SET</span>
+                                                </td>
+                                                <td className="text-right font-mono-num text-slate-600 dark:text-slate-400">
+                                                    Rp {p.revenue.toLocaleString('id-ID')}
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={3} className="text-center py-8 text-slate-400">Belum ada penjualan barang.</td>
                                             </tr>
                                         )}
                                     </tbody>
