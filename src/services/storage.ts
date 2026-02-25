@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { SyncService } from './sync';
 import { TransactionSchema, InventorySchema } from '../lib/validation';
 import { LoggerService } from './logger';
+import { decryptData } from '../lib/encryption';
 export interface InventoryLog {
     id: string;
     date: string;
@@ -120,7 +121,7 @@ export const StorageService = {
 
                 // Track Audit Log
                 const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
-                const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+                const actorId = currentUserStr ? decryptData(currentUserStr)?.id || 'system' : 'system';
                 LoggerService.logAction(actorId, 'RESTOCK', null, newLog);
 
                 return newLog;
@@ -154,7 +155,7 @@ export const StorageService = {
 
             // Track Audit Log
             const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
-            const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+            const actorId = currentUserStr ? decryptData(currentUserStr)?.id || 'system' : 'system';
             LoggerService.logAction(actorId, 'RESTOCK', null, newLog);
 
             return newLog;
@@ -671,7 +672,7 @@ export const StorageService = {
 
         // Track Audit Log
         const currentUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('efuel_user') : null;
-        const actorId = currentUserStr ? JSON.parse(currentUserStr).id : 'system';
+        const actorId = currentUserStr ? decryptData(currentUserStr)?.id || 'system' : 'system';
         LoggerService.logAction(actorId, 'SHIFT_END', null, { shiftId, ...updates });
     },
 
