@@ -163,13 +163,21 @@ export default function DashboardPage() {
                     <Zap size={20} style={{ color: 'var(--accent)' }} /> Quick Actions
                 </h2>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-10">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
                     <Link href="/pos" className="menu-card group !p-4">
                         <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
                             <Zap size={22} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>POS Kasir</h3>
+                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>POS Bensin</h3>
+                        </div>
+                    </Link>
+                    <Link href="/pos/sparepart" className="menu-card group !p-4">
+                        <div className="menu-card-icon !w-12 !h-12 !rounded-xl" style={{ background: '#E0F2FE', color: '#0284C7' }}>
+                            <Package size={22} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>POS Barang</h3>
                         </div>
                     </Link>
                     <Link href="/shift/start" className="menu-card group !p-4">

@@ -19,6 +19,26 @@ export const InventorySchema = z.object({
     notes: z.string().max(500).optional(),
 });
 
+// 2b. Sparepart Product Validation
+export const ProductSchema = z.object({
+    name: z.string().min(2),
+    sku: z.string().optional(),
+    category: z.string().default('SPAREPART'),
+    buy_price: z.number().min(0),
+    sell_price: z.number().min(0),
+    unit: z.string().default('PCS'),
+    min_stock: z.number().min(0).default(2),
+    is_active: z.boolean().default(true),
+});
+
+export const ProductInventorySchema = z.object({
+    product_id: z.string().uuid(),
+    type: z.enum(['IN', 'OUT', 'ADJUSTMENT']),
+    quantity: z.number().int(),
+    cost_price: z.number().min(0).default(0),
+    notes: z.string().max(500).optional(),
+});
+
 // 3. Employee/Attendance Validation
 export const AttendanceSchema = z.object({
     employee_id: z.string().uuid(),

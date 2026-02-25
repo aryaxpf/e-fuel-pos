@@ -4,6 +4,7 @@ import { SyncService } from './sync';
 import { TransactionSchema, InventorySchema } from '../lib/validation';
 import { LoggerService } from './logger';
 import { decryptData } from '../lib/encryption';
+import { ProductService } from './productService';
 export interface InventoryLog {
     id: string;
     date: string;
@@ -997,10 +998,14 @@ export const StorageService = {
 
     getTransactionsByHour: async (date = new Date()) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
 
         // Filter transactions for the specified date
         const targetDateString = date.toISOString().split('T')[0];
         const dayTxs = txs.filter((tx: any) =>
+            tx.timestamp.startsWith(targetDateString) && tx.status !== 'VOID'
+        );
+        const dayProdTxs = prodTxs.filter((tx: any) =>
             tx.timestamp.startsWith(targetDateString) && tx.status !== 'VOID'
         );
 
@@ -1019,11 +1024,19 @@ export const StorageService = {
             }
         });
 
+        dayProdTxs.forEach((tx: any) => {
+            const hour = new Date(tx.timestamp).getHours();
+            if (hour >= 0 && hour < 24) {
+                hourlyData[hour].transactions += 1;
+            }
+        });
+
         return hourlyData;
     },
 
     getRevenueAndProfitByDay: async (days = 7) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
         const result = [];
         const today = new Date();
 
@@ -1035,9 +1048,14 @@ export const StorageService = {
             const dayTxs = txs.filter((tx: any) =>
                 tx.timestamp.startsWith(dateStr) && tx.status !== 'VOID'
             );
+            const dayProdTxs = prodTxs.filter((tx: any) =>
+                tx.timestamp.startsWith(dateStr) && tx.status !== 'VOID'
+            );
 
-            const revenue = dayTxs.reduce((sum: number, tx: any) => sum + tx.nominal, 0);
-            const profit = dayTxs.reduce((sum: number, tx: any) => sum + tx.profit, 0);
+            const revenue = dayTxs.reduce((sum: number, tx: any) => sum + tx.nominal, 0) +
+                dayProdTxs.reduce((sum: number, tx: any) => sum + tx.total_amount, 0);
+            const profit = dayTxs.reduce((sum: number, tx: any) => sum + tx.profit, 0) +
+                dayProdTxs.reduce((sum: number, tx: any) => sum + tx.total_profit, 0);
 
             result.push({
                 date: d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
@@ -1051,18 +1069,18 @@ export const StorageService = {
 
     getOperatorPerformance: async (hoursBack = 24) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
 
         const cutoff = new Date();
         cutoff.setHours(cutoff.getHours() - hoursBack);
 
-        const recentTxs = txs.filter((tx: any) =>
-            new Date(tx.timestamp) >= cutoff
-        );
+        const recentTxs = txs.filter((tx: any) => new Date(tx.timestamp) >= cutoff);
+        const recentProdTxs = prodTxs.filter((tx: any) => new Date(tx.timestamp) >= cutoff);
 
         const operators: Record<string, { username: string, volume: number, count: number, voids: number }> = {};
 
         recentTxs.forEach((tx: any) => {
-            const username = tx.actor?.username || 'Unknown';
+            const username = tx.actor?.username || tx.username || 'Unknown';
             if (!operators[username]) {
                 operators[username] = { username, volume: 0, count: 0, voids: 0 };
             }
@@ -1071,6 +1089,19 @@ export const StorageService = {
                 operators[username].voids += 1;
             } else {
                 operators[username].volume += tx.liter;
+                operators[username].count += 1;
+            }
+        });
+
+        recentProdTxs.forEach((tx: any) => {
+            const username = tx.username || 'Unknown';
+            if (!operators[username]) {
+                operators[username] = { username, volume: 0, count: 0, voids: 0 };
+            }
+
+            if (tx.status === 'VOID') {
+                operators[username].voids += 1;
+            } else {
                 operators[username].count += 1;
             }
         });

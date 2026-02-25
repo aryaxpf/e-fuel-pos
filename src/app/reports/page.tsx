@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import { ArrowLeft, Download, RefreshCw, FileSpreadsheet, Trash2, ShieldAlert, X, ArrowUpCircle, ArrowDownCircle, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { StorageService, TransactionRecord, InventoryLog } from '../../services/storage';
+import { ProductService } from '../../services/productService';
 import { exportToExcel } from '../../lib/export';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
@@ -14,7 +15,7 @@ import Toast, { ToastType } from '../../components/Toast';
 type UnifiedRecord = {
     id: string;
     timestamp: string;
-    type: 'SALE' | 'RESTOCK' | 'ADJUSTMENT';
+    type: 'SALE' | 'RESTOCK' | 'ADJUSTMENT' | 'SPAREPART_SALE';
     nominal: number;
     liter: number;
     profit?: number;
@@ -28,9 +29,15 @@ export default function ReportsPage() {
     const [unifiedData, setUnifiedData] = useState<UnifiedRecord[]>([]);
     const [summary, setSummary] = useState({
         totalMoney: 0,
+        fuelMoney: 0,
+        sparepartMoney: 0,
         totalLiter: 0,
         totalProfit: 0,
+        fuelProfit: 0,
+        sparepartProfit: 0,
         totalRestock: 0,
+        fuelRestock: 0,
+        sparepartRestock: 0,
         totalOpEx: 0,
         netProfit: 0
     });
@@ -46,7 +53,9 @@ export default function ReportsPage() {
 
     // Store RAW data for client-side filtering
     const [rawTransactions, setRawTransactions] = useState<TransactionRecord[]>([]);
+    const [rawProductTransactions, setRawProductTransactions] = useState<any[]>([]);
     const [rawInventory, setRawInventory] = useState<InventoryLog[]>([]);
+    const [rawProductInventory, setRawProductInventory] = useState<any[]>([]);
     const [rawExpenses, setRawExpenses] = useState<any[]>([]);
 
     const [activeTab, setActiveTab] = useState<'daily' | 'analytics'>('daily');
@@ -63,15 +72,19 @@ export default function ReportsPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [transactions, inventory, expenses, shift] = await Promise.all([
+            const [transactions, prodTxs, inventory, prodInvs, expenses, shift] = await Promise.all([
                 StorageService.getTransactions(),
+                ProductService.getProductTransactionsForReports(),
                 StorageService.getInventoryLogs(),
+                ProductService.getProductInventoryForReports(),
                 StorageService.getExpenses(),
                 user?.id ? StorageService.getCurrentShift(user.id) : Promise.resolve(null)
             ]);
 
             setRawTransactions(transactions);
+            setRawProductTransactions(prodTxs);
             setRawInventory(inventory);
+            setRawProductInventory(prodInvs);
             setRawExpenses(expenses);
             setCurrentShift(shift);
 
@@ -79,9 +92,9 @@ export default function ReportsPage() {
             // Only set this on initial load to avoid overriding user choice
             if (shift && timeRange === '7d') {
                 setTimeRange('shift');
-                processData(transactions, inventory, expenses, 'shift', shift);
+                processData(transactions, prodTxs, inventory, prodInvs, expenses, 'shift', shift);
             } else {
-                processData(transactions, inventory, expenses, timeRange, shift);
+                processData(transactions, prodTxs, inventory, prodInvs, expenses, timeRange, shift);
             }
 
         } catch (error) {
@@ -93,7 +106,9 @@ export default function ReportsPage() {
 
     const processData = (
         transactions: TransactionRecord[],
+        prodTxs: any[],
         inventory: InventoryLog[],
+        prodInvs: any[],
         expenses: any[],
         range: 'shift' | '7d' | '30d' | 'month',
         shift: any
@@ -123,11 +138,12 @@ export default function ReportsPage() {
 
         // 2. Filter Data
         const filteredTx = transactions.filter(t => new Date(t.timestamp) >= cutoff);
-        // For Inventory and Expenses, we also filter by time
+        const filteredProdTx = prodTxs.filter(t => new Date(t.timestamp) >= cutoff);
         const filteredInv = inventory.filter(i => new Date(i.date) >= cutoff);
+        const filteredProdInv = prodInvs.filter(i => new Date(i.created_at) >= cutoff);
         const filteredExp = expenses.filter(e => new Date(e.date) >= cutoff);
 
-        // 3. Transform to Unified Records (for Table)
+        // 3. Transform config
         const txRecords: UnifiedRecord[] = filteredTx.map(t => ({
             id: t.id,
             timestamp: t.timestamp,
@@ -135,8 +151,20 @@ export default function ReportsPage() {
             nominal: t.nominal,
             liter: t.liter,
             profit: t.profit,
-            details: t.isSpecialRule ? 'Paket Hemat' : 'Standard',
+            details: t.isSpecialRule ? 'Paket Hemat Bensin' : 'Penjualan Bensin',
             isSpecial: t.isSpecialRule,
+            originalData: t
+        }));
+
+        const prodTxRecords: UnifiedRecord[] = filteredProdTx.map(t => ({
+            id: t.id,
+            timestamp: t.timestamp,
+            type: 'SPAREPART_SALE',
+            nominal: t.total_amount,
+            liter: 0,
+            profit: t.total_profit,
+            details: `Barang: ${t.items.map((i: any) => i.name).join(', ')}`,
+            isSpecial: false,
             originalData: t
         }));
 
@@ -149,28 +177,57 @@ export default function ReportsPage() {
                 nominal: -Math.abs(i.costPerLiter * i.volume),
                 liter: i.volume,
                 profit: 0,
-                details: i.notes || 'Restock Modal',
+                details: i.notes || 'Restock Bensin',
                 originalData: i
             }));
 
-        const allData = [...txRecords, ...stockRecords].sort((a, b) =>
+        const prodStockRecords: UnifiedRecord[] = filteredProdInv
+            .filter(i => i.type === 'IN')
+            .map(i => ({
+                id: i.id,
+                timestamp: i.created_at,
+                type: 'RESTOCK',
+                nominal: -Math.abs(i.cost_price * i.quantity),
+                liter: 0,
+                profit: 0,
+                details: i.notes || 'Restock Barang',
+                originalData: i
+            }));
+
+        const allData = [...txRecords, ...prodTxRecords, ...stockRecords, ...prodStockRecords].sort((a, b) =>
             new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
         setUnifiedData(allData);
 
         // 4. Calculate Summaries
-        const totalMoney = filteredTx.reduce((acc, curr) => acc + curr.nominal, 0);
+        const fuelMoney = filteredTx.reduce((acc, curr) => acc + curr.nominal, 0);
+        const sparepartMoney = filteredProdTx.reduce((acc, curr) => acc + curr.total_amount, 0);
+        const totalMoney = fuelMoney + sparepartMoney;
+
         const totalLiter = filteredTx.reduce((acc, curr) => acc + curr.liter, 0);
-        const totalProfitSales = filteredTx.reduce((acc, curr) => acc + curr.profit, 0);
-        const totalRestock = stockRecords.reduce((acc, curr) => acc + Math.abs(curr.nominal), 0);
+
+        const fuelProfit = filteredTx.reduce((acc, curr) => acc + curr.profit, 0);
+        const sparepartProfit = filteredProdTx.reduce((acc, curr) => acc + curr.total_profit, 0);
+        const totalProfitSales = fuelProfit + sparepartProfit;
+
+        const fuelRestock = stockRecords.reduce((acc, curr) => acc + Math.abs(curr.nominal), 0);
+        const sparepartRestock = prodStockRecords.reduce((acc, curr) => acc + Math.abs(curr.nominal), 0);
+        const totalRestock = fuelRestock + sparepartRestock;
+
         const totalOpEx = filteredExp.reduce((acc: number, curr: any) => acc + curr.amount, 0);
         const netProfit = totalProfitSales - totalOpEx;
 
         setSummary({
             totalMoney,
+            fuelMoney,
+            sparepartMoney,
             totalLiter,
             totalProfit: totalProfitSales,
+            fuelProfit,
+            sparepartProfit,
             totalRestock,
+            fuelRestock,
+            sparepartRestock,
             totalOpEx,
             netProfit
         });
@@ -182,6 +239,10 @@ export default function ReportsPage() {
         filteredTx.forEach(t => {
             const dateKey = new Date(t.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
             dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + t.nominal);
+        });
+        filteredProdTx.forEach(t => {
+            const dateKey = new Date(t.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + t.total_amount);
         });
 
         const trendData: any[] = [];
@@ -210,6 +271,10 @@ export default function ReportsPage() {
             const h = new Date(t.timestamp).getHours();
             hourMap[h] += t.nominal;
         });
+        filteredProdTx.forEach(t => {
+            const h = new Date(t.timestamp).getHours();
+            hourMap[h] += t.total_amount;
+        });
         setHourlyHeatmap(hourMap.map((v, i) => ({ hour: `${i}:00`, amount: v })));
 
         // C. Profit Trend (Line Chart: Revenue vs Net Profit)
@@ -231,6 +296,17 @@ export default function ReportsPage() {
                 const entry = profitMap.get(key)!;
                 entry.revenue += t.nominal;
                 entry.cost += (t.nominal - t.profit);
+            }
+        });
+
+        filteredProdTx.forEach(t => {
+            const key = new Date(t.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            if (!profitMap.has(key) && isShiftMode) profitMap.set(key, { revenue: 0, cost: 0, opex: 0 });
+
+            if (profitMap.has(key)) {
+                const entry = profitMap.get(key)!;
+                entry.revenue += t.total_amount;
+                entry.cost += (t.total_amount - t.total_profit);
             }
         });
 
@@ -256,22 +332,30 @@ export default function ReportsPage() {
             if (t.paymentMethod === 'DEBT') payMap.Debt += 1;
             else payMap.Cash += 1;
         });
+        filteredProdTx.forEach(t => {
+            if (t.payment_method === 'DEBT') payMap.Debt += 1;
+            else payMap.Cash += 1;
+        });
         setPaymentStats([
-            { name: 'Tunai', value: payMap.Cash, color: '#22c55e' },
+            { name: 'Tunai / QRIS', value: payMap.Cash, color: '#22c55e' },
             { name: 'Kasbon', value: payMap.Debt, color: '#ef4444' }
         ]);
 
         // E. Hourly Chart (For Daily Tab) - IF Shift mode, use filteredTx, else use Today
         let chartSourceTx = transactions;
+        let chartSourceProdTx = prodTxs;
         if (isShiftMode) {
             chartSourceTx = filteredTx;
+            chartSourceProdTx = filteredProdTx;
         } else {
             const todayStr = new Date().toDateString();
             chartSourceTx = transactions.filter(t => new Date(t.timestamp).toDateString() === todayStr);
+            chartSourceProdTx = prodTxs.filter(t => new Date(t.timestamp).toDateString() === todayStr);
         }
 
         const todayHourly = new Array(24).fill(0);
         chartSourceTx.forEach(t => todayHourly[new Date(t.timestamp).getHours()] += t.nominal);
+        chartSourceProdTx.forEach(t => todayHourly[new Date(t.timestamp).getHours()] += t.total_amount);
         setChartData(todayHourly.map((v, i) => ({ date: `${i}:00`, sales: v })));
     };
 
@@ -281,10 +365,10 @@ export default function ReportsPage() {
 
     // Re-run processData when timeRange changes (using raw data)
     useEffect(() => {
-        if (rawTransactions.length > 0 || rawInventory.length > 0) {
-            processData(rawTransactions, rawInventory, rawExpenses, timeRange, currentShift);
+        if (rawTransactions.length > 0 || rawInventory.length > 0 || rawProductTransactions.length > 0 || rawProductInventory.length > 0) {
+            processData(rawTransactions, rawProductTransactions, rawInventory, rawProductInventory, rawExpenses, timeRange, currentShift);
         }
-    }, [timeRange, rawTransactions, rawInventory, rawExpenses, currentShift]);
+    }, [timeRange, rawTransactions, rawProductTransactions, rawInventory, rawProductInventory, rawExpenses, currentShift]);
 
     const handleExportExcel = () => {
         exportToExcel(unifiedData);
@@ -483,35 +567,57 @@ export default function ReportsPage() {
                 {/* --- Summary Cards --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                     {/* Row 1: Money In/Out */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black">
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <p className="text-xs font-bold text-slate-400 uppercase">Omzet (Bruto)</p>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Omzet (Bruto)</p>
+                            </div>
+                            <p className="text-2xl font-bold text-slate-800">Rp {summary.totalMoney.toLocaleString()}</p>
                         </div>
-                        <p className="text-2xl font-bold text-slate-800">Rp {summary.totalMoney.toLocaleString()}</p>
+                        <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+                            <span>Bensin: Rp {summary.fuelMoney.toLocaleString()}</span>
+                            <span>Barang: Rp {summary.sparepartMoney.toLocaleString()}</span>
+                        </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black">
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                            <p className="text-xs font-bold text-slate-400 uppercase">Restock (Modal)</p>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Restock (Modal)</p>
+                            </div>
+                            <p className="text-2xl font-bold text-purple-600">Rp {summary.totalRestock.toLocaleString()}</p>
                         </div>
-                        <p className="text-2xl font-bold text-purple-600">Rp {summary.totalRestock.toLocaleString()}</p>
+                        <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-purple-400 flex justify-between">
+                            <span>Bensin: Rp {summary.fuelRestock.toLocaleString()}</span>
+                            <span>Barang: Rp {summary.sparepartRestock.toLocaleString()}</span>
+                        </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black">
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            <p className="text-xs font-bold text-slate-400 uppercase">Biaya Operasional</p>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Biaya Operasional</p>
+                            </div>
+                            <p className="text-2xl font-bold text-red-500">Rp {summary.totalOpEx.toLocaleString()}</p>
                         </div>
-                        <p className="text-2xl font-bold text-red-500">Rp {summary.totalOpEx.toLocaleString()}</p>
+                        <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-red-400 flex justify-between">
+                            <span>Semua Pengeluaran</span>
+                        </div>
                     </div>
 
                     {/* Row 2: Profits */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black bg-gradient-to-br from-green-50 to-white">
-                        <p className="text-xs font-bold text-green-600 uppercase mb-1">Gross Profit (Margin BBM)</p>
-                        <p className="text-2xl font-bold text-green-700">+ Rp {summary.totalProfit.toLocaleString()}</p>
-                        <p className="text-[10px] text-green-500">Omzet - HPP (Modal Bensin)</p>
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black bg-gradient-to-br from-green-50 to-white flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-green-600 uppercase mb-1">Gross Profit (Margin Kotor)</p>
+                            <p className="text-2xl font-bold text-green-700">+ Rp {summary.totalProfit.toLocaleString()}</p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-green-100/50 text-[11px] text-green-600 flex justify-between">
+                            <span>Bensin: +Rp {summary.fuelProfit.toLocaleString()}</span>
+                            <span>Barang: +Rp {summary.sparepartProfit.toLocaleString()}</span>
+                        </div>
                     </div>
 
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-black bg-gradient-to-br from-blue-50 to-white sm:col-span-2 lg:col-span-2">
@@ -585,16 +691,20 @@ export default function ReportsPage() {
                                                         {new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                                     </td>
                                                     <td className="p-4">
-                                                        {item.type === 'SALE' ? (
-                                                            <span className="inline-flex items-center gap-1 text-green-600 font-bold text-sm"><ArrowUpCircle size={16} /> Penjualan</span>
-                                                        ) : (
+                                                        {item.type === 'SALE' && (
+                                                            <span className="inline-flex items-center gap-1 text-green-600 font-bold text-sm"><ArrowUpCircle size={16} /> Bensin</span>
+                                                        )}
+                                                        {item.type === 'SPAREPART_SALE' && (
+                                                            <span className="inline-flex items-center gap-1 text-blue-600 font-bold text-sm"><ArrowUpCircle size={16} /> Barang</span>
+                                                        )}
+                                                        {item.type === 'RESTOCK' && (
                                                             <span className="inline-flex items-center gap-1 text-purple-600 font-bold text-sm"><ArrowDownCircle size={16} /> Restock</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4 font-medium text-slate-800">
-                                                        {item.type === 'SALE' ? `Rp ${item.nominal.toLocaleString()}` : `-`}
+                                                        {(item.type === 'SALE' || item.type === 'SPAREPART_SALE') ? `Rp ${item.nominal.toLocaleString()}` : `-`}
                                                     </td>
-                                                    <td className="p-4 text-blue-600 font-medium">{item.liter} L</td>
+                                                    <td className="p-4 text-blue-600 font-medium">{item.liter ? `${item.liter} L` : '-'}</td>
                                                     <td className="p-4 text-sm text-slate-500">{item.details}</td>
                                                     <td className="p-4 text-center">
                                                         <div className="flex justify-center gap-2">

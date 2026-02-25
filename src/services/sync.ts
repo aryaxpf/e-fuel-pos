@@ -4,7 +4,7 @@ const QUEUE_KEY = 'efuel_sync_queue';
 
 export interface SyncItem {
     id: string; // Unique ID for the queue item
-    action: 'INSERT_INVENTORY' | 'INSERT_TRANSACTION' | 'INSERT_EXPENSE' | 'UPDATE_SETTINGS' | 'DELETE_STOCK' | 'DELETE_TRANSACTION' | 'DELETE_EXPENSE' | 'INSERT_EMPLOYEE' | 'UPDATE_EMPLOYEE' | 'DELETE_EMPLOYEE' | 'INSERT_ATTENDANCE' | 'UPDATE_ATTENDANCE';
+    action: 'INSERT_INVENTORY' | 'INSERT_TRANSACTION' | 'INSERT_EXPENSE' | 'UPDATE_SETTINGS' | 'DELETE_STOCK' | 'DELETE_TRANSACTION' | 'DELETE_EXPENSE' | 'INSERT_EMPLOYEE' | 'UPDATE_EMPLOYEE' | 'DELETE_EMPLOYEE' | 'INSERT_ATTENDANCE' | 'UPDATE_ATTENDANCE' | 'INSERT_PRODUCT' | 'UPDATE_PRODUCT' | 'INSERT_PRODUCT_INVENTORY' | 'INSERT_PRODUCT_TRANSACTION';
     payload: any;
     timestamp: number;
     retryCount: number;
@@ -110,6 +110,27 @@ export const SyncService = {
                         // payload is { id, updates }
                         const { error: err12 } = await supabase.from('attendance').update(item.payload.updates).eq('id', item.payload.id);
                         error = err12;
+                        break;
+                    case 'INSERT_PRODUCT':
+                        const { error: err13 } = await supabase.from('products').insert(item.payload);
+                        error = err13;
+                        break;
+                    case 'UPDATE_PRODUCT':
+                        const { error: err14 } = await supabase.from('products').update(item.payload.updates).eq('id', item.payload.id);
+                        error = err14;
+                        break;
+                    case 'INSERT_PRODUCT_INVENTORY':
+                        const { error: err15 } = await supabase.from('product_inventory').insert(item.payload);
+                        error = err15;
+                        break;
+                    case 'INSERT_PRODUCT_TRANSACTION':
+                        // payload should match process_product_transaction expectations or directly insert to tables.
+                        // However, processProductSale fallback saves to DB sequentially. If we insert directly to product_transactions and product_inventory it works.
+                        // Or we call the RPC if payload is specifically designed for RPC.
+                        // But since the fallback inserts manually into tables, we should just insert into the tables.
+                        // Actually, if we use INSERT_PRODUCT_TRANSACTION it inserts the trx. The inventory OUTs are handled by INSERT_PRODUCT_INVENTORY.
+                        const { error: err16 } = await supabase.from('product_transactions').insert(item.payload);
+                        error = err16;
                         break;
                 }
 
