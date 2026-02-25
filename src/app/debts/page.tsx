@@ -22,6 +22,11 @@ export default function DebtsPage() {
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
+    const loadDebts = async () => {
+        const data = await StorageService.getDebts();
+        setDebts(data);
+    };
+
     useEffect(() => {
         if (!loading) {
             if (!user) {
@@ -30,12 +35,8 @@ export default function DebtsPage() {
                 loadDebts();
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, loading, router]);
-
-    const loadDebts = async () => {
-        const data = await StorageService.getDebts();
-        setDebts(data);
-    };
 
     const handlePay = async () => {
         if (!selectedDebt || !payAmount) return;

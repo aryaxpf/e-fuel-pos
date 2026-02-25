@@ -17,16 +17,6 @@ export default function RequestsPage() {
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
-    useEffect(() => {
-        if (!authLoading) {
-            if (!user || user.role !== 'admin') {
-                router.push('/dashboard');
-            } else {
-                fetchRequests();
-            }
-        }
-    }, [user, authLoading, router]);
-
     const fetchRequests = async () => {
         try {
             const data = await StorageService.getRequests();
@@ -37,6 +27,16 @@ export default function RequestsPage() {
             setToast({ message: 'Gagal memuat permintaan.', type: 'error' });
         }
     };
+
+    useEffect(() => {
+        if (!authLoading) {
+            if (!user || user.role !== 'admin') {
+                router.push('/dashboard');
+            } else {
+                fetchRequests();
+            }
+        }
+    }, [user, authLoading, router]);
 
     const handleAction = async (req: any, action: 'APPROVED' | 'REJECTED') => {
         try {

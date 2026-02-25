@@ -28,67 +28,118 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-            <div className="bg-white max-w-md w-full rounded-3xl shadow-xl overflow-hidden">
-                <div className="bg-blue-600 p-8 text-center">
-                    <div className="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                        <Fuel size={32} className="text-white" />
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
+            
+            {/* Decorative ambient orbs */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none" 
+                 style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', filter: 'blur(100px)' }} />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none" 
+                 style={{ background: 'radial-gradient(circle, var(--success) 0%, transparent 70%)', filter: 'blur(80px)', animationDelay: '2s' }} />
+
+            <div className="w-full max-w-md relative z-10 page-fade-in">
+                {/* Glass Card */}
+                <div className="relative overflow-hidden shadow-2xl transition-all duration-300" style={{
+                    background: 'var(--card-bg)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-xl)',
+                }}>
+                    {/* Header */}
+                    <div className="p-10 pb-6 text-center">
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform hover:scale-105 duration-300" style={{
+                            background: 'var(--accent)',
+                            boxShadow: '0 10px 30px -10px var(--accent)',
+                        }}>
+                            <Fuel size={36} className="text-white" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>E-Fuel POS</h1>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sign in to start your cashier shift</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-white">E-Fuel POS</h1>
-                    <p className="text-blue-100 mt-2">Masuk untuk memulai shift</p>
+
+                    {/* Form */}
+                    <div className="px-10 pb-10">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {error && (
+                                <div className="toast-enter p-4 rounded-xl text-sm font-bold text-center flex items-center justify-center gap-2" style={{ background: 'var(--danger-soft)', color: 'var(--danger)', border: '1px solid var(--danger-border)' }}>
+                                    <Lock size={16} /> {error}
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Username</label>
+                                <div className="relative group">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300" size={20} style={{ color: 'var(--text-muted)' }} />
+                                    <input
+                                        type="text"
+                                        required
+                                        autoFocus
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl outline-none transition-all duration-300 font-medium"
+                                        style={{
+                                            background: 'var(--bg-secondary)',
+                                            border: '1px solid var(--border-color)',
+                                            color: 'var(--text-primary)',
+                                        }}
+                                        placeholder="admin"
+                                    />
+                                    {/* Focus Border glow effect */}
+                                    <div className="absolute inset-0 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Password</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300" size={20} style={{ color: 'var(--text-muted)' }} />
+                                    <input
+                                        type="password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 rounded-xl outline-none transition-all duration-300 font-medium"
+                                        style={{
+                                            background: 'var(--bg-secondary)',
+                                            border: '1px solid var(--border-color)',
+                                            color: 'var(--text-primary)',
+                                        }}
+                                        placeholder="••••••"
+                                    />
+                                    {/* Focus Border glow effect */}
+                                    <div className="absolute inset-0 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn-press w-full text-white font-bold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                style={{
+                                    background: 'var(--accent)',
+                                    boxShadow: '0 8px 25px -5px var(--accent)',
+                                    minHeight: 'var(--touch-min)',
+                                    marginTop: '8px'
+                                }}
+                            >
+                                {loading ? (
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <>MASUK <Lock size={18} /></>
+                                )}
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
-                <div className="p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium text-center animate-pulse">
-                                {error}
-                            </div>
-                        )}
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600">Username</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                <input
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-slate-900"
-                                    placeholder="admin"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-slate-900"
-                                    placeholder="••••••"
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {loading ? 'Memproses...' : 'MASUK'}
-                        </button>
-                    </form>
-
-                    <div className="mt-8 text-center">
-
-                    </div>
+                {/* Footer Branding */}
+                <div className="text-center mt-8">
+                    <p className="text-sm font-medium tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                        SECURE STATION TERMINAL
+                    </p>
+                    <p className="text-xs mt-1 opacity-70" style={{ color: 'var(--text-muted)' }}>
+                        E-Fuel POS &copy; {new Date().getFullYear()}
+                    </p>
                 </div>
             </div>
         </div>

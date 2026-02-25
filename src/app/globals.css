@@ -1,8 +1,235 @@
 @import "tailwindcss";
 
+/* ============================================================
+   E-FUEL POS — Design System
+   Premium POS interface optimized for fuel station environments
+   ============================================================ */
+
+/* --- Theme Tokens (Light — Warm Cream/Gold/Pastel) --- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surface — warm cream base */
+  --bg-primary: #FFF8F0;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FEF3E2;
+  --bg-input: #FFFAF5;
+  --border: #E8DDD0;
+  --border-focus: #D4A574;
+
+  /* Text */
+  --text-primary: #2C1810;
+  --text-secondary: #5C4033;
+  --text-muted: #A08B7A;
+  --text-inverse: #FFFFFF;
+
+  /* Brand / Actions — golden amber */
+  --accent: #D4A574;
+  --accent-hover: #C4956A;
+  --accent-soft: #FEF3E2;
+  --success: #5B8C5A;
+  --success-soft: #E8F5E8;
+  --danger: #C75050;
+  --danger-soft: #FDECEC;
+  --warning: #D4A030;
+  --warning-soft: #FFF8E6;
+
+  /* Fuel Colors (Industry Standard) */
+  --fuel-pertalite: #5B8C5A;
+  --fuel-pertamax: #4A7DB5;
+  --fuel-turbo: #C75050;
+  --fuel-dex: #8B6BAE;
+  --fuel-solar: #D4A030;
+
+  /* Spacing & Sizing */
+  --touch-min: 56px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(44, 24, 16, 0.06);
+  --shadow-md: 0 4px 12px rgba(44, 24, 16, 0.08);
+  --shadow-lg: 0 8px 30px rgba(44, 24, 16, 0.12);
+  --shadow-glow-blue: 0 4px 20px rgba(212, 165, 116, 0.3);
+  --shadow-glow-green: 0 4px 20px rgba(91, 140, 90, 0.3);
+
+  /* Navbar */
+  --nav-bg: rgba(44, 24, 16, 0.95);
+  --nav-text: #F5E6D3;
+  --nav-accent: #D4A574;
+
+  --background: #FFF8F0;
+  --foreground: #2C1810;
+}
+
+/* --- Theme Tokens (Dark — Deep Warm Night) --- */
+.dark {
+  --bg-primary: #0B0F19;
+  --bg-card: #131825;
+  --bg-elevated: #1B2033;
+  --bg-input: #1B2033;
+  --border: #2A3045;
+  --border-focus: #6C9BCF;
+
+  --text-primary: #E8E0D8;
+  --text-secondary: #A8B4C0;
+  --text-muted: #607080;
+  --text-inverse: #0B0F19;
+
+  --accent: #6C9BCF;
+  --accent-hover: #5A89BD;
+  --accent-soft: rgba(108, 155, 207, 0.12);
+  --success: #5BAD7A;
+  --success-soft: rgba(91, 173, 122, 0.12);
+  --danger: #E07070;
+  --danger-soft: rgba(224, 112, 112, 0.12);
+  --warning: #D4A03A;
+  --warning-soft: rgba(212, 160, 58, 0.12);
+
+  --nav-bg: rgba(11, 15, 25, 0.98);
+  --nav-text: #A8B4C0;
+  --nav-accent: #6C9BCF;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.55);
+  --shadow-glow-blue: 0 4px 20px rgba(108, 155, 207, 0.25);
+  --shadow-glow-green: 0 4px 20px rgba(91, 173, 122, 0.25);
+
+  --background: #0B0F19;
+  --foreground: #E8E0D8;
+}
+
+/* --- Dark Mode Tailwind Utility Overrides --- */
+.dark .bg-white {
+  background-color: var(--bg-card) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
+  background-color: var(--bg-elevated) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(108, 155, 207, 0.10) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: rgba(91, 173, 122, 0.10) !important;
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(224, 112, 112, 0.10) !important;
+}
+
+.dark .bg-yellow-50 {
+  background-color: rgba(212, 160, 58, 0.10) !important;
+}
+
+.dark .bg-purple-50 {
+  background-color: rgba(139, 107, 174, 0.10) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: rgba(212, 160, 58, 0.10) !important;
+}
+
+.dark .bg-pink-50 {
+  background-color: rgba(194, 24, 91, 0.10) !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: rgba(212, 160, 58, 0.10) !important;
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgba(91, 173, 122, 0.10) !important;
+}
+
+.dark .text-slate-800,
+.dark .text-slate-900 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-700 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+.dark .text-slate-400,
+.dark .text-slate-300 {
+  color: var(--text-muted) !important;
+}
+
+.dark .text-blue-600 {
+  color: var(--accent) !important;
+}
+
+.dark .text-green-600 {
+  color: var(--success) !important;
+}
+
+.dark .text-red-600 {
+  color: var(--danger) !important;
+}
+
+.dark .text-orange-600 {
+  color: var(--warning) !important;
+}
+
+.dark .text-amber-600 {
+  color: var(--warning) !important;
+}
+
+.dark .text-emerald-600 {
+  color: var(--success) !important;
+}
+
+.dark .text-pink-600 {
+  color: #E07070 !important;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-100 {
+  border-color: var(--border) !important;
+}
+
+.dark .hover\:border-blue-500:hover {
+  border-color: var(--accent) !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: var(--bg-elevated) !important;
+}
+
+.dark .divide-slate-100> :not([hidden])~ :not([hidden]) {
+  border-color: var(--border) !important;
+}
+
+.dark select,
+.dark input,
+.dark textarea {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+.dark select option {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.dark .shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark .shadow-md {
+  box-shadow: var(--shadow-md) !important;
 }
 
 @theme inline {
@@ -12,40 +239,448 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* --- Base --- */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* --- Monospace Numbers (prevents layout shift) --- */
+.font-mono-num {
+  font-family: var(--font-geist-mono, 'JetBrains Mono', 'Fira Code', monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* --- Touch Target Enforcement --- */
+.touch-target {
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* --- Micro-Interaction: Button Press --- */
+.btn-press {
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* --- Micro-Interaction: Ripple Effect --- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  opacity: 1;
+}
+
+/* --- Glow Effects --- */
+.glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.glow-green {
+  box-shadow: var(--shadow-glow-green);
+}
+
+/* --- Stock Level Indicators --- */
+.stock-high {
+  color: var(--success);
+}
+
+.stock-medium {
+  color: var(--warning);
+}
+
+.stock-low {
+  color: var(--danger);
+}
+
+/* --- Toast Notification --- */
+.toast-enter {
+  animation: toastSlideIn 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.toast-exit {
+  animation: toastSlideOut 150ms ease-in forwards;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes toastSlideOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
 }
 
+/* --- Success Pop Animation (Modal) --- */
+.success-pop {
+  animation: successPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes successPop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Skeleton Loading --- */
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--bg-elevated) 25%,
+      var(--bg-card) 37%,
+      var(--bg-elevated) 63%);
+  background-size: 400% 100%;
+  animation: skeletonShimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* --- POS Card Surfaces --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-elevated {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   Page Layout Utilities
+   ============================================================ */
+
+.page-container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+/* --- Unified Back Button (Arrow-only, circular) --- */
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateX(-2px);
+}
+
+/* --- Data Card (Frosted, consistent) --- */
+.data-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow 200ms ease;
+}
+
+.data-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Summary Stat Card --- */
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--summary-accent, var(--accent));
+}
+
+.summary-card-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.summary-card-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: var(--font-geist-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* --- Unified Table Styles --- */
+.data-table {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table thead {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  padding: 0.875rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.data-table td {
+  padding: 0.875rem 1rem;
+  color: var(--text-secondary);
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 100ms ease;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+/* --- Unified Modal Styles --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 200ms ease forwards;
+}
+
+.modal-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 28rem;
+  padding: 1.5rem;
+  animation: modalPop 250ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Dashboard Menu Card --- */
+.menu-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  transition: all 200ms ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.menu-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 200ms ease;
+}
+
+.menu-card:hover .menu-card-icon {
+  transform: scale(1.1);
+}
+
+/* --- Page Fade-In Animation --- */
+.page-fade-in {
+  animation: pageFade 300ms ease forwards;
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Alert Card --- */
+.alert-card {
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+}
+
+/* --- Print Styles --- */
 @media print {
-  /* Hide everything by default */
   body * {
     visibility: hidden;
   }
 
-  /* Show only the printable area */
-  .print\:block, .print\:block * {
+  .print\:block,
+  .print\:block * {
     visibility: visible;
   }
 
-  /* Position the receipt at the very top-left */
   .print\:block {
     position: absolute;
     left: 0;
     top: 0;
-    width: 58mm; /* Standard thermal width */
-    font-family: 'Courier New', Courier, monospace; /* Monospace matches thermal font better */
+    width: 58mm;
+    font-family: 'Courier New', Courier, monospace;
   }
 
-  /* Reset page margins */
   @page {
     size: auto;
     margin: 0;

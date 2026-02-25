@@ -1,0 +1,45 @@
+# Docker Compose for On-Premise / Local Deployment
+# This provides a self-contained stack: Next.js app + PostgreSQL database.
+# Use this as an alternative to Supabase cloud for offline/local environments.
+
+services:
+  app:
+    build: .
+    container_name: efuel-pos-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/efuel
+      # Set your Supabase variables here if using Supabase in container mode,
+      # or leave empty to use localStorage fallback mode:
+      # - NEXT_PUBLIC_SUPABASE_URL=
+      # - NEXT_PUBLIC_SUPABASE_ANON_KEY=
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: efuel-pos-db
+    environment:
+      POSTGRES_DB: efuel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Mount SQL schema files for initial setup:
+      - ./db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local

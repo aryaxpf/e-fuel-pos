@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '../context/AuthContext';
+import { ThemeProvider } from '../context/ThemeContext';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#3b82f6",
+  themeColor: "#D4A574",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "E-Fuel POS",
-  description: "Sistem Manajemen Stok & Penualan Bensin Mini",
+  description: "Sistem Manajemen Stok & Penjualan Bensin Mini",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -37,13 +39,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

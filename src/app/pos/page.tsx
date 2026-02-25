@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../../components/Navbar';
 import { calculateTransaction, TransactionResult } from '../../lib/fuel-logic';
 import { StorageService } from '../../services/storage';
-import { Fuel, Delete, ChevronRight, Zap } from 'lucide-react';
+import { TransactionService } from '../../services/transactionService';
+import { Fuel, Delete, ChevronRight, Zap, AlertTriangle } from 'lucide-react';
 import TransactionSuccessModal from '../../components/TransactionSuccessModal';
 import { playSuccessSound } from '../../utils/sound';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +20,10 @@ export default function POSPage() {
     const [currentStock, setCurrentStock] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [lastTransaction, setLastTransaction] = useState({ nominal: 0, liter: 0, profit: 0 });
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Toast state for stock warnings
+    const [toast, setToast] = useState<{ message: string; type: 'error' | 'warning' } | null>(null);
 
     // Debt State
     const [showDebtModal, setShowDebtModal] = useState(false);
@@ -39,54 +44,43 @@ export default function POSPage() {
             setSelectedCustomer(customer);
         } catch (error) {
             console.error(error);
-            alert('Gagal tambah pelanggan');
+            showToast('Gagal tambah pelanggan', 'error');
         }
     };
 
     const handleDebtProcess = async () => {
         if (!result || result.nominal === 0 || !selectedCustomer) return;
-
-        // 1. Check Stock
         if (result.liter > currentStock) {
-            alert(`Stok tidak cukup! Sisa: ${currentStock} Liter.`);
+            showToast(`Stok tidak cukup! Sisa: ${currentStock.toFixed(2)} Liter`, 'error');
             return;
         }
-
         try {
-            // 2. Save Transaction as DEBT
             const transaction = await StorageService.addTransaction({
                 ...result,
-                paymentMethod: 'DEBT' // Explicitly set payment method
+                paymentMethod: 'DEBT',
             } as any);
-
-            // 3. Create Debt Record
             await StorageService.addDebt(
                 selectedCustomer.id,
                 transaction.id,
                 result.nominal,
                 'Kasbon Bensin'
             );
-
-            // 4. Update Inventory
             await StorageService.addInventoryLog({
                 type: 'OUT',
                 volume: result.liter,
                 costPerLiter: 0,
-                notes: `Kasbon: ${selectedCustomer.name}`
+                notes: `Kasbon: ${selectedCustomer.name}`,
             });
-
-            // 5. Success
             playSuccessSound();
             setLastTransaction({ nominal: result.nominal, liter: result.liter, profit: result.profit });
-            setShowModal(true); // Reuse existing success modal
+            setShowModal(true);
             setShowDebtModal(false);
             setNewCustomerName('');
             setSelectedCustomer(null);
             updateStock();
-
         } catch (error) {
             console.error(error);
-            alert('Gagal proses kasbon');
+            showToast('Gagal proses kasbon', 'error');
         }
     };
 
@@ -99,9 +93,7 @@ export default function POSPage() {
 
     // Load stock on mount
     useEffect(() => {
-        if (user) {
-            updateStock();
-        }
+        if (user) updateStock();
     }, [user]);
 
     const updateStock = async () => {
@@ -116,55 +108,99 @@ export default function POSPage() {
         setResult(res);
     }, [amountStr]);
 
-    // Handle Numpad / Preset Input
-    const handleInput = (val: number | string) => {
-        let newVal = amountStr === '0' ? '' : amountStr;
-
-        if (typeof val === 'number') {
-            // Preset button clicked (replace current value)
-            setAmountStr(val.toString());
-        } else {
-            // Manual numpad
-            if (val === 'DEL') {
-                newVal = newVal.slice(0, -1);
-                setAmountStr(newVal.length === 0 ? '0' : newVal);
-            } else {
-                // Limit length to avoid overflow
-                if (newVal.length < 7) {
-                    setAmountStr(newVal + val);
-                }
-            }
-        }
+    // Show toast notification (non-blocking, auto-dismiss)
+    const showToast = (message: string, type: 'error' | 'warning') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
     };
 
-    const handleProcess = async () => {
-        if (!result || result.nominal === 0) return;
+    // Handle Numpad / Preset Input
+    const handleInput = useCallback((val: number | string) => {
+        setAmountStr(prev => {
+            let newVal = prev === '0' ? '' : prev;
+            if (typeof val === 'number') {
+                return val.toString();
+            } else if (val === 'DEL') {
+                newVal = newVal.slice(0, -1);
+                return newVal.length === 0 ? '0' : newVal;
+            } else if (val === 'C') {
+                return '0';
+            } else {
+                if (newVal.length < 7) {
+                    return newVal + val;
+                }
+                return prev;
+            }
+        });
+    }, []);
 
-        if (result.liter > currentStock) {
-            alert(`Stok tidak cukup! Sisa: ${currentStock} Liter.`);
-            return;
-        }
+    // ========================================
+    // Keyboard Shortcuts
+    // ========================================
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Don't capture if typing in an input/textarea
+            const tag = (e.target as HTMLElement).tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            // Numpad 0-9
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                handleInput(e.key);
+            }
+            // Backspace = DEL
+            else if (e.key === 'Backspace') {
+                e.preventDefault();
+                handleInput('DEL');
+            }
+            // Escape = Clear
+            else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleInput('C');
+            }
+            // Enter = Process
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                handleProcess();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleInput, result, user, isProcessing]);
+
+    const handleProcess = async () => {
+        if (!result || result.nominal === 0 || !user || isProcessing) return;
+        setIsProcessing(true);
 
         try {
-            // 1. Save to Storage
-            await StorageService.addTransaction(result);
-            await StorageService.addInventoryLog({
-                type: 'OUT',
-                volume: result.liter,
-                costPerLiter: 0, // Not needed for OUT
-                notes: 'Sales Transaction'
+            const txResult = await TransactionService.processTransaction({
+                amount: result.nominal,
+                paymentMethod: 'CASH',
+                actor: {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role,
+                },
             });
 
-            // 2. Play Sound & Show Modal
-            playSuccessSound();
-            setLastTransaction({ nominal: result.nominal, liter: result.liter, profit: result.profit });
-            setShowModal(true);
+            if (!txResult.success) {
+                showToast(txResult.error || 'Gagal memproses transaksi', 'error');
+                return;
+            }
 
-            // 3. Update stock locally
+            playSuccessSound();
+            setLastTransaction({
+                nominal: txResult.record!.nominal,
+                liter: txResult.record!.liter,
+                profit: txResult.record!.profit,
+            });
+            setShowModal(true);
             await updateStock();
         } catch (error) {
-            console.error("Transaction failed", error);
-            alert("Gagal memproses transaksi");
+            console.error('Transaction failed', error);
+            showToast('Gagal memproses transaksi', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -173,12 +209,28 @@ export default function POSPage() {
         setAmountStr('0');
     };
 
-    const presets = [10000, 15000, 20000, 50000, 6000];
+    // Format number to Rupiah display
+    const formatRupiah = (n: number) => n.toLocaleString('id-ID');
+
+    // Stock level indicator
+    const getStockLevel = () => {
+        if (currentStock > 20) return 'stock-high';
+        if (currentStock > 5) return 'stock-medium';
+        return 'stock-low';
+    };
+
+    const presets = [
+        { value: 6000, label: '6k', color: 'bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-800' },
+        { value: 10000, label: '10k', color: 'bg-blue-500/10 text-blue-700 border-blue-200 hover:bg-blue-500/20 dark:text-blue-400 dark:border-blue-800' },
+        { value: 15000, label: '15k', color: 'bg-violet-500/10 text-violet-700 border-violet-200 hover:bg-violet-500/20 dark:text-violet-400 dark:border-violet-800' },
+        { value: 20000, label: '20k', color: 'bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/20 dark:text-amber-400 dark:border-amber-800' },
+        { value: 50000, label: '50k', color: 'bg-rose-500/10 text-rose-700 border-rose-200 hover:bg-rose-500/20 dark:text-rose-400 dark:border-rose-800' },
+    ];
 
     if (loading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col">
+        <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
             <Navbar />
 
             <TransactionSuccessModal
@@ -187,117 +239,168 @@ export default function POSPage() {
                 data={lastTransaction}
             />
 
-            <main className="flex-1 container mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* ====== TOAST NOTIFICATION (Non-blocking) ====== */}
+            {toast && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] toast-enter">
+                    <div
+                        className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg font-bold text-sm border ${toast.type === 'error'
+                                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+                                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                            }`}
+                    >
+                        <AlertTriangle size={18} />
+                        {toast.message}
+                    </div>
+                </div>
+            )}
 
-                {/* --- LEFT PANEL: DISPLAY & INPUTS --- */}
+            <main className="flex-1 container mx-auto p-2 md:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+
+                {/* ====== LEFT PANEL (70%) — Display + Presets ====== */}
                 <section className="lg:col-span-7 flex flex-col gap-4">
 
-                    {/* Status Bar */}
-                    <div className="bg-slate-900 text-white rounded-2xl p-4 flex justify-between items-center shadow-lg">
+                    {/* Stock Status Bar */}
+                    <div className="card-elevated p-4 flex justify-between items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-600 rounded-lg">
-                                <Fuel size={24} />
+                            <div className="p-2.5 rounded-xl" style={{ background: 'var(--accent-soft)' }}>
+                                <Fuel size={22} style={{ color: 'var(--accent)' }} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-400 font-medium uppercase">Sisa Stok</p>
-                                <p className="text-xl font-bold">{currentStock} <span className="text-sm font-normal">Liter</span></p>
+                                <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Sisa Stok</p>
+                                <p className={`text-xl font-bold font-mono-num ${getStockLevel()}`}>
+                                    {currentStock.toFixed(1)} <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}>Liter</span>
+                                </p>
                             </div>
                         </div>
-                        {result?.isSpecialRule && (
-                            <div className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-xs font-bold border border-yellow-500/50">
-                                <Zap size={12} />
-                                SPECIAL PRICE
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {result?.isSpecialRule && (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold" style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
+                                    <Zap size={12} />
+                                    SPECIAL
+                                </div>
+                            )}
+                            {currentStock <= 5 && currentStock > 0 && (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold animate-pulse" style={{ background: 'var(--danger-soft)', color: 'var(--danger)' }}>
+                                    <AlertTriangle size={12} />
+                                    STOK RENDAH
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Main Display */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-10 text-right space-y-2 relative overflow-hidden">
-                        <p className="text-slate-500 font-medium tracking-wide uppercase text-sm">Total Bayar</p>
-                        <div className="text-5xl md:text-7xl font-bold text-slate-800 tracking-tighter">
-                            <span className="text-2xl md:text-4xl text-slate-400 mr-2">Rp</span>
-                            {parseInt(amountStr).toLocaleString()}
+                    {/* Main Price Display */}
+                    <div className="card-elevated p-6 md:p-8 text-right relative overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>Total Bayar</p>
+                        <div className="font-mono-num text-5xl md:text-7xl font-bold tracking-tighter" style={{ color: 'var(--text-primary)' }}>
+                            <span className="text-2xl md:text-3xl mr-1" style={{ color: 'var(--text-muted)' }}>Rp</span>
+                            {formatRupiah(parseInt(amountStr) || 0)}
                         </div>
 
-                        <div className="border-t border-slate-100 my-4 pt-4 flex justify-end items-end gap-2">
+                        <div className="mt-4 pt-4 flex justify-end items-end gap-6" style={{ borderTop: '1px solid var(--border)' }}>
                             <div className="text-right">
-                                <p className="text-xs text-slate-400 uppercase font-bold mb-1">Volume Keluar</p>
-                                <p className="text-4xl font-bold text-blue-600">{result?.liter} <span className="text-lg text-slate-400">Liter</span></p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Volume</p>
+                                <p className="font-mono-num text-3xl md:text-4xl font-bold" style={{ color: 'var(--accent)' }}>
+                                    {result?.liter ?? 0} <span className="text-base font-normal" style={{ color: 'var(--text-muted)' }}>L</span>
+                                </p>
                             </div>
-                        </div>
-
-                        {/* Profit Indicator (Subtle) */}
-                        <div className="absolute top-6 left-6 opacity-30">
-                            <p className="text-xs font-mono">EST. PROFIT</p>
-                            <p className="font-mono font-bold text-green-600">+{result?.profit}</p>
+                            <div className="text-right">
+                                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Profit</p>
+                                <p className="font-mono-num text-lg font-bold" style={{ color: 'var(--success)' }}>
+                                    +{formatRupiah(result?.profit ?? 0)}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Preset Buttons */}
-                    <div className="grid grid-cols-3 gap-3 md:gap-4">
-                        {presets.map((val) => (
+                    {/* Preset Quick Buttons (Huge Touch Targets) */}
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                        {presets.map((preset) => (
                             <button
-                                key={val}
-                                onClick={() => handleInput(val)}
-                                className="bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 py-6 rounded-2xl shadow-sm transition active:scale-95 flex flex-col items-center justify-center gap-1 group"
+                                key={preset.value}
+                                onClick={() => handleInput(preset.value)}
+                                className={`btn-press ripple touch-target flex-col gap-1 rounded-2xl border py-5 font-bold transition-all ${preset.color}`}
                             >
-                                <span className="text-slate-500 text-xs font-medium group-hover:text-blue-500">Bensin</span>
-                                <span className="text-xl md:text-2xl font-bold text-slate-700 group-hover:text-blue-700">
-                                    {val / 1000}k
-                                </span>
+                                <span className="text-xs opacity-70">Bensin</span>
+                                <span className="text-2xl md:text-3xl font-mono-num">{preset.label}</span>
                             </button>
                         ))}
                     </div>
 
+                    {/* Keyboard Shortcuts Hint */}
+                    <div className="hidden lg:flex items-center gap-4 px-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        <span><kbd className="px-1.5 py-0.5 rounded border text-[10px] font-bold" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>0-9</kbd> Numpad</span>
+                        <span><kbd className="px-1.5 py-0.5 rounded border text-[10px] font-bold" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>Enter</kbd> Bayar</span>
+                        <span><kbd className="px-1.5 py-0.5 rounded border text-[10px] font-bold" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>Esc</kbd> Hapus</span>
+                        <span><kbd className="px-1.5 py-0.5 rounded border text-[10px] font-bold" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>⌫</kbd> Delete</span>
+                    </div>
                 </section>
 
-                {/* --- RIGHT PANEL: MANUAL NUMPAD --- */}
+                {/* ====== RIGHT PANEL (30%) — Numpad + Actions ====== */}
                 <section className="lg:col-span-5 flex flex-col">
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex-1 flex flex-col">
-                        <div className="grid grid-cols-3 gap-4 flex-1 mb-6">
+                    <div className="card-elevated p-4 md:p-6 flex-1 flex flex-col" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                        {/* Numpad Grid */}
+                        <div className="grid grid-cols-3 gap-3 flex-1 mb-4">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                                 <button
                                     key={num}
                                     onClick={() => handleInput(num.toString())}
-                                    className="text-3xl font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition active:scale-90"
+                                    className="btn-press ripple touch-target text-3xl font-bold rounded-xl transition-colors"
+                                    style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                                 >
                                     {num}
                                 </button>
                             ))}
+                            {/* Clear */}
                             <button
-                                onClick={() => setAmountStr('0')}
-                                className="text-lg font-bold text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition active:scale-90"
+                                onClick={() => handleInput('C')}
+                                className="btn-press touch-target text-lg font-bold rounded-xl transition-colors"
+                                style={{ background: 'var(--danger-soft)', color: 'var(--danger)' }}
                             >
                                 C
                             </button>
+                            {/* 0 */}
                             <button
                                 onClick={() => handleInput('0')}
-                                className="text-3xl font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition active:scale-90"
+                                className="btn-press ripple touch-target text-3xl font-bold rounded-xl transition-colors"
+                                style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                             >
                                 0
                             </button>
+                            {/* Delete */}
                             <button
                                 onClick={() => handleInput('DEL')}
-                                className="text-slate-500 bg-slate-50 hover:bg-slate-100 rounded-xl transition active:scale-90 flex items-center justify-center"
+                                className="btn-press touch-target rounded-xl transition-colors flex items-center justify-center"
+                                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
                             >
                                 <Delete size={24} />
                             </button>
                         </div>
 
+                        {/* Action Buttons */}
                         <div className="space-y-3">
-                            <div className="flex justify-between items-center px-2 text-slate-500 text-sm">
+                            {/* Summary line */}
+                            <div className="flex justify-between items-center px-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                                 <span>Summary</span>
-                                <span>{result?.isSpecialRule ? 'Special Rate Applied' : 'Standard Rate'}</span>
+                                <span className="font-mono-num">{result?.isSpecialRule ? '⚡ Special Rate' : 'Standard Rate'}</span>
                             </div>
+
+                            {/* BAYAR Button (Huge) */}
                             <button
                                 onClick={handleProcess}
-                                disabled={!result || result.nominal === 0}
-                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xl font-bold py-5 rounded-2xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition transform active:scale-95 flex items-center justify-center gap-3"
+                                disabled={!result || result.nominal === 0 || isProcessing}
+                                className="btn-press ripple w-full text-xl font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+                                style={{
+                                    background: !result || result.nominal === 0 || isProcessing ? 'var(--bg-elevated)' : 'var(--accent)',
+                                    color: !result || result.nominal === 0 || isProcessing ? 'var(--text-muted)' : 'var(--text-inverse)',
+                                    boxShadow: !result || result.nominal === 0 || isProcessing ? 'none' : 'var(--shadow-glow-blue)',
+                                    minHeight: '64px',
+                                }}
                             >
-                                <span>BAYAR</span>
-                                <ChevronRight size={24} />
+                                <span>{isProcessing ? 'MEMPROSES...' : 'BAYAR'}</span>
+                                {!isProcessing && <ChevronRight size={24} />}
                             </button>
 
+                            {/* KASBON Button */}
                             <button
                                 onClick={() => {
                                     if (!result || result.nominal === 0) return;
@@ -305,49 +408,59 @@ export default function POSPage() {
                                     setShowDebtModal(true);
                                 }}
                                 disabled={!result || result.nominal === 0}
-                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"
+                                className="btn-press w-full font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{
+                                    background: 'var(--bg-elevated)',
+                                    color: 'var(--text-secondary)',
+                                }}
                             >
-                                <span className="text-sm">BAYAR NANTI (KASBON)</span>
+                                BAYAR NANTI (KASBON)
                             </button>
                         </div>
                     </div>
                 </section>
 
-                {/* --- DEBT MODAL --- */}
+                {/* ====== DEBT MODAL ====== */}
                 {showDebtModal && (
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl w-full max-w-md p-6">
-                            <h3 className="text-xl font-bold mb-4">Pilih Pelanggan</h3>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+                        <div className="card-elevated w-full max-w-md p-6 success-pop" style={{ background: 'var(--bg-card)' }}>
+                            <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Pilih Pelanggan</h3>
 
-                            {/* Search / Add Customer Input */}
                             <div className="mb-4">
-                                <label className="text-xs font-bold text-slate-500 uppercase">Cari / Tambah Baru</label>
+                                <label className="text-xs font-bold uppercase" style={{ color: 'var(--text-muted)' }}>Cari / Tambah Baru</label>
                                 <input
                                     type="text"
                                     placeholder="Nama Pelanggan..."
-                                    className="w-full p-3 border rounded-xl mt-1 text-slate-800"
+                                    className="w-full p-3 rounded-xl mt-1 outline-none transition"
+                                    style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                                     value={newCustomerName}
                                     onChange={(e) => setNewCustomerName(e.target.value)}
                                 />
-                                {newCustomerName && !customers.find(c => c.name.toLowerCase() === newCustomerName.toLowerCase()) && (
+                                {newCustomerName && !customers.find((c: any) => c.name.toLowerCase() === newCustomerName.toLowerCase()) && (
                                     <button
                                         onClick={handleAddCustomer}
-                                        className="mt-2 text-sm text-blue-600 font-bold flex items-center gap-1"
+                                        className="mt-2 text-sm font-bold flex items-center gap-1"
+                                        style={{ color: 'var(--accent)' }}
                                     >
-                                        + Tambah "{newCustomerName}"
+                                        + Tambah &quot;{newCustomerName}&quot;
                                     </button>
                                 )}
                             </div>
 
-                            {/* Customer List */}
-                            <div className="max-h-60 overflow-y-auto border rounded-xl mb-4">
+                            <div className="max-h-60 overflow-y-auto rounded-xl mb-4" style={{ border: '1px solid var(--border)' }}>
                                 {customers
-                                    .filter(c => c.name.toLowerCase().includes(newCustomerName.toLowerCase()))
-                                    .map(c => (
+                                    .filter((c: any) => c.name.toLowerCase().includes(newCustomerName.toLowerCase()))
+                                    .map((c: any) => (
                                         <div
                                             key={c.id}
                                             onClick={() => setSelectedCustomer(c)}
-                                            className={`p-3 border-b last:border-0 cursor-pointer flex justify-between items-center ${selectedCustomer?.id === c.id ? 'bg-blue-50 text-blue-800 font-bold' : 'hover:bg-slate-50 text-slate-800'}`}
+                                            className="p-3 cursor-pointer flex justify-between items-center transition-colors"
+                                            style={{
+                                                borderBottom: '1px solid var(--border)',
+                                                background: selectedCustomer?.id === c.id ? 'var(--accent-soft)' : 'transparent',
+                                                color: selectedCustomer?.id === c.id ? 'var(--accent)' : 'var(--text-primary)',
+                                                fontWeight: selectedCustomer?.id === c.id ? 700 : 400,
+                                            }}
                                         >
                                             <span>{c.name}</span>
                                             {selectedCustomer?.id === c.id && <span>✓</span>}
@@ -358,14 +471,16 @@ export default function POSPage() {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => { setShowDebtModal(false); setSelectedCustomer(null); }}
-                                    className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600"
+                                    className="flex-1 py-3 rounded-xl font-bold transition-colors"
+                                    style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
                                 >
                                     Batal
                                 </button>
                                 <button
                                     onClick={handleDebtProcess}
                                     disabled={!selectedCustomer}
-                                    className="flex-1 py-3 bg-blue-600 rounded-xl font-bold text-white disabled:opacity-50"
+                                    className="flex-1 py-3 rounded-xl font-bold transition-colors disabled:opacity-50"
+                                    style={{ background: 'var(--accent)', color: 'var(--text-inverse)' }}
                                 >
                                     Simpan Hutang
                                 </button>
@@ -373,7 +488,6 @@ export default function POSPage() {
                         </div>
                     </div>
                 )}
-
             </main>
         </div>
     );

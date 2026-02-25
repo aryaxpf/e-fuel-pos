@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckCircle, Printer } from 'lucide-react';
+import { CheckCircle, Printer, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface TransactionSuccessModalProps {
     show: boolean;
@@ -9,59 +10,94 @@ interface TransactionSuccessModalProps {
         nominal: number;
         liter: number;
         profit: number;
-    }
+    };
 }
 
+const formatRupiah = (n: number) => n.toLocaleString('id-ID');
+
 export default function TransactionSuccessModal({ show, onClose, data }: TransactionSuccessModalProps) {
+    // Auto-dismiss after 5 seconds
+    useEffect(() => {
+        if (!show) return;
+        const timer = setTimeout(onClose, 5000);
+        return () => clearTimeout(timer);
+    }, [show, onClose]);
+
+    // Close on Escape
+    useEffect(() => {
+        if (!show) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' || e.key === 'Enter') onClose();
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [show, onClose]);
+
     if (!show) return null;
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const handlePrint = () => window.print();
 
     return (
         <>
             {/* --- MODAL UI (Hidden during Print) --- */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:hidden">
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                    <div className="bg-green-500 p-6 flex justify-center">
-                        <CheckCircle className="text-white w-16 h-16" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}>
+                <div className="w-full max-w-sm overflow-hidden success-pop" style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-lg)' }}>
+
+                    {/* Success Header */}
+                    <div className="p-6 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-3">
+                            <CheckCircle className="text-white w-10 h-10" />
+                        </div>
+                        <h2 className="text-xl font-bold text-white">Transaksi Berhasil!</h2>
+                        <p className="text-emerald-100 text-sm mt-1">Data tersimpan di sistem</p>
                     </div>
 
-                    <div className="p-6 text-center">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-1">Transaksi Berhasil!</h2>
-                        <p className="text-gray-500 text-sm mb-6">Data telah tersimpan di sistem.</p>
-
-                        <div className="space-y-4 mb-8">
-                            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                <span className="text-gray-500">Nominal</span>
-                                <span className="font-bold text-lg">Rp {data.nominal.toLocaleString()}</span>
+                    {/* Data */}
+                    <div className="p-6">
+                        <div className="space-y-4 mb-6">
+                            <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Nominal</span>
+                                <span className="font-mono-num text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                                    Rp {formatRupiah(data.nominal)}
+                                </span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                <span className="text-gray-500">Volume</span>
-                                <span className="font-bold text-lg">{data.liter} Liter</span>
+                            <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Volume</span>
+                                <span className="font-mono-num text-xl font-bold" style={{ color: 'var(--accent)' }}>
+                                    {data.liter} Liter
+                                </span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-gray-100 pb-2 bg-green-50 px-2 -mx-2 rounded">
-                                <span className="text-green-600 font-medium">Profit</span>
-                                <span className="font-bold text-lg text-green-700">+ Rp {data.profit.toLocaleString()}</span>
+                            <div className="flex justify-between items-center px-3 py-2 rounded-xl" style={{ background: 'var(--success-soft)' }}>
+                                <span className="font-medium" style={{ color: 'var(--success)' }}>Profit</span>
+                                <span className="font-mono-num text-xl font-bold" style={{ color: 'var(--success)' }}>
+                                    +Rp {formatRupiah(data.profit)}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="space-y-3">
+                        {/* Actions */}
+                        <div className="space-y-2">
                             <button
                                 onClick={handlePrint}
-                                className="w-full bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"
+                                className="btn-press w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
                             >
-                                <Printer size={20} />
+                                <Printer size={18} />
                                 Cetak Struk
                             </button>
                             <button
                                 onClick={onClose}
-                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition shadow-lg hover:shadow-xl active:scale-95"
+                                className="btn-press w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-lg"
+                                style={{ background: 'var(--accent)', color: 'var(--text-inverse)', boxShadow: 'var(--shadow-glow-blue)' }}
                             >
                                 Transaksi Baru
                             </button>
                         </div>
+
+                        {/* Auto-dismiss hint */}
+                        <p className="text-center text-[11px] mt-3" style={{ color: 'var(--text-muted)' }}>
+                            Otomatis tutup dalam 5 detik • Tekan <kbd className="px-1 py-0.5 rounded text-[10px] font-bold" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>Enter</kbd>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -72,16 +108,14 @@ export default function TransactionSuccessModal({ show, onClose, data }: Transac
                     <p className="font-bold text-sm mb-1 uppercase">E-FUEL STATION</p>
                     <p className="mb-2">{new Date().toLocaleString('id-ID')}</p>
                     <hr className="border-black mb-2 border-dashed" />
-
                     <div className="flex justify-between mb-1">
                         <span>Bensin</span>
                         <span>{data.liter} L</span>
                     </div>
                     <div className="flex justify-between mb-2">
                         <span>Total</span>
-                        <span className="font-bold">Rp {data.nominal.toLocaleString()}</span>
+                        <span className="font-bold">Rp {formatRupiah(data.nominal)}</span>
                     </div>
-
                     <hr className="border-black mb-2 border-dashed" />
                     <p className="text-center">TERIMA KASIH</p>
                 </div>

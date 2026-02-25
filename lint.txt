@@ -1,0 +1,414 @@
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\audit\page.tsx[24m[0m
+[0m  [2m10:38[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\employees\page.tsx[24m[0m
+[0m   [2m59:36[22m   [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m69:25[22m   [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m85:18[22m   [33mwarning[39m  'error' is defined but never used         [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m219:125[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\page.tsx[24m[0m
+[0m  [2m54:130[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\payroll\page.tsx[24m[0m
+[0m    [2m7:68[22m  [33mwarning[39m  'X' is defined but never used                                    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m64:25[22m  [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m140:74[22m  [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m140:83[22m  [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\settings\page.tsx[24m[0m
+[0m  [2m55:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m76:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\admin\users\page.tsx[24m[0m
+[0m    [2m5:47[22m  [33mwarning[39m  'User' is defined but never used              [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m15:40[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m16:12[22m  [33mwarning[39m  'loading' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m26:54[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m31:54[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m68:25[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m94:25[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m102:35[22m  [31merror[39m    Unexpected any. Specify a different type      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\attendance\page.tsx[24m[0m
+[0m    [2m7:8[22m   [33mwarning[39m  'Image' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m31:18[22m  [33mwarning[39m  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m34:13[22m  [31merror[39m    Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\app\attendance\page.tsx:34:13[0m
+[0m  32 |             );[0m
+[0m  33 |         } else {[0m
+[0m> 34 |             setErrorMessage('Browser tidak mendukung Geolocation.');[0m
+[0m     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  35 |         }[0m
+[0m  36 |[0m
+[0m  37 |         return () => {  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m   [2m58:18[22m  [33mwarning[39m  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m99:25[22m  [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m201:33[22m  [33mwarning[39m  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         [2m@next/next/no-img-element[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\dashboard\page.tsx[24m[0m
+[0m    [2m7:51[22m  [33mwarning[39m  'BarChart3' is defined but never used                                                                             [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m8:15[22m  [33mwarning[39m  'ShieldCheck' is defined but never used                                                                           [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m23:12[22m  [33mwarning[39m  'currentShift' is assigned a value but never used                                                                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m23:54[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m24:12[22m  [33mwarning[39m  'pendingCount' is assigned a value but never used                                                                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m28:50[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m29:52[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m30:54[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m46:8[22m   [33mwarning[39m  React Hook useEffect has a missing dependency: 'loadDashboard'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m   [2m72:57[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m102:69[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m107:42[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\debts\page.tsx[24m[0m
+[0m  [2m16:40[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m19:54[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m30:17[22m  [31merror[39m  Error: Cannot access variable before it is declared[0m
+[0m[0m
+[0m`loadDebts` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\app\debts\page.tsx:30:17[0m
+[0m  28 |                 router.push('/login');[0m
+[0m  29 |             } else {[0m
+[0m> 30 |                 loadDebts();[0m
+[0m     |                 ^^^^^^^^^ `loadDebts` accessed before it is declared[0m
+[0m  31 |             }[0m
+[0m  32 |         }[0m
+[0m  33 |     }, [user, loading, router]);[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\app\debts\page.tsx:35:5[0m
+[0m  33 |     }, [user, loading, router]);[0m
+[0m  34 |[0m
+[0m> 35 |     const loadDebts = async () => {[0m
+[0m     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 36 |         const data = await StorageService.getDebts();[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 37 |         setDebts(data);[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 38 |     };[0m
+[0m     | ^^^^^^^ `loadDebts` is declared here[0m
+[0m  39 |[0m
+[0m  40 |     const handlePay = async () => {[0m
+[0m  41 |         if (!selectedDebt || !payAmount) return;  [2mreact-hooks/immutability[22m[0m
+[0m  [2m57:25[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\expenses\page.tsx[24m[0m
+[0m    [2m6:46[22m   [33mwarning[39m  'Tag' is defined but never used                                  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m6:51[22m   [33mwarning[39m  'FileText' is defined but never used                             [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m16:46[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m21:60[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m66:25[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m73:59[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m83:33[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m109:25[22m   [31merror[39m    Unexpected any. Specify a different type                         [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m316:86[22m   [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m316:110[22m  [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\pos\page.tsx[24m[0m
+[0m   [2m30:48[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m31:62[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m61:18[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m169:8[22m   [33mwarning[39m  React Hook useEffect has a missing dependency: 'handleProcess'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m  [2m439:73[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m452:49[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m453:46[22m  [31merror[39m    Unexpected any. Specify a different type                                                                          [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\receipt\[id]\page.tsx[24m[0m
+[0m  [2m9:11[22m  [33mwarning[39m  'router' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\reports\page.tsx[24m[0m
+[0m    [2m5:21[22m  [33mwarning[39m  'Download' is defined but never used                                                                          [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m23:19[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m37:48[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m38:52[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m39:56[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m43:54[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m44:52[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m45:54[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m50:52[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m97:19[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m99:16[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m166:66[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m187:26[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m196:19[22m  [33mwarning[39m  'daysToIterate' is assigned a value but never used                                                            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m280:8[22m   [33mwarning[39m  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m  [2m340:25[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m351:25[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m424:49[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m455:81[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m558:65[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m640:69[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m656:69[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m672:69[22m  [31merror[39m    Unexpected any. Specify a different type                                                                      [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\requests\page.tsx[24m[0m
+[0m    [2m6:10[22m   [33mwarning[39m  'Check' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m    [2m6:17[22m   [33mwarning[39m  'X' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m15:46[22m   [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m25:17[22m   [31merror[39m    Error: Cannot access variable before it is declared[0m
+[0m[0m
+[0m`fetchRequests` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\app\requests\page.tsx:25:17[0m
+[0m  23 |                 router.push('/dashboard');[0m
+[0m  24 |             } else {[0m
+[0m> 25 |                 fetchRequests();[0m
+[0m     |                 ^^^^^^^^^^^^^ `fetchRequests` accessed before it is declared[0m
+[0m  26 |             }[0m
+[0m  27 |         }[0m
+[0m  28 |     }, [user, authLoading, router]);[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\app\requests\page.tsx:30:5[0m
+[0m  28 |     }, [user, authLoading, router]);[0m
+[0m  29 |[0m
+[0m> 30 |     const fetchRequests = async () => {[0m
+[0m     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 31 |         try {[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 32 |             const data = await StorageService.getRequests();[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 33 |             // Sort by newest[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 34 |             setRequests(data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 35 |         } catch (error) {[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 36 |             console.error(error);[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 37 |             setToast({ message: 'Gagal memuat permintaan.', type: 'error' });[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 38 |         }[0m
+[0m     | ^^^^^^^^^^^^^[0m
+[0m> 39 |     };[0m
+[0m     | ^^^^^^^ `fetchRequests` is declared here[0m
+[0m  40 |[0m
+[0m  41 |     const handleAction = async (req: any, action: 'APPROVED' | 'REJECTED') => {[0m
+[0m  42 |         try {  [2mreact-hooks/immutability[22m[0m
+[0m   [2m34:39[22m   [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m34:47[22m   [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m41:38[22m   [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m72:25[22m   [31merror[39m    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m143:53[22m   [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m143:102[22m  [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              [2mreact/no-unescaped-entities[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\shift\end\page.tsx[24m[0m
+[0m   [2m8:21[22m  [33mwarning[39m  'Wallet' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m8:29[22m  [33mwarning[39m  'Calculator' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m14:40[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m19:52[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m72:25[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\shift\start\page.tsx[24m[0m
+[0m  [2m48:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\app\stock\page.tsx[24m[0m
+[0m  [2m42:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\components\AdminGuard.tsx[24m[0m
+[0m   [2m5:10[22m  [33mwarning[39m  'useRouter' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m20:13[22m  [31merror[39m    Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\components\AdminGuard.tsx:20:13[0m
+[0m  18 |         const authList = sessionStorage.getItem('efuel_admin_auth');[0m
+[0m  19 |         if (authList === 'true') {[0m
+[0m> 20 |             setIsAuthenticated(true);[0m
+[0m     |             ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  21 |         }[0m
+[0m  22 |[0m
+[0m  23 |         // Load dynamic admin PIN from store settings  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\components\Navbar.tsx[24m[0m
+[0m  [2m19:13[22m  [31merror[39m  Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\components\Navbar.tsx:19:13[0m
+[0m  17 |[0m
+[0m  18 |         if (typeof window !== 'undefined') {[0m
+[0m> 19 |             setIsOnline(navigator.onLine);[0m
+[0m     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  20 |         }[0m
+[0m  21 |[0m
+[0m  22 |         const handleOnline = () => {  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\components\ProtectedRoute.tsx[24m[0m
+[0m  [2m21:17[22m  [31merror[39m  Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\components\ProtectedRoute.tsx:21:17[0m
+[0m  19 |                 router.replace('/dashboard');[0m
+[0m  20 |             } else {[0m
+[0m> 21 |                 setAuthorized(true);[0m
+[0m     |                 ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  22 |             }[0m
+[0m  23 |             return;[0m
+[0m  24 |         }  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\components\Toast.tsx[24m[0m
+[0m  [2m3:21[22m  [33mwarning[39m  'useState' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\components\TransactionSuccessModal.tsx[24m[0m
+[0m  [2m3:32[22m  [33mwarning[39m  'X' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\context\AuthContext.tsx[24m[0m
+[0m  [2m37:21[22m  [31merror[39m    Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\context\AuthContext.tsx:37:21[0m
+[0m  35 |                 // Validate if user has ID (Migrate old sessions)[0m
+[0m  36 |                 if (savedUser && savedUser.id) {[0m
+[0m> 37 |                     setUser(savedUser);[0m
+[0m     |                     ^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  38 |                 } else {[0m
+[0m  39 |                     // Invalid/Old session, clear it[0m
+[0m  40 |                     sessionStorage.removeItem('efuel_user');  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m  [2m43:22[22m  [33mwarning[39m  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\context\ThemeContext.tsx[24m[0m
+[0m  [2m27:13[22m  [31merror[39m  Error: Cannot access variable before it is declared[0m
+[0m[0m
+[0m`applyTheme` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\context\ThemeContext.tsx:27:13[0m
+[0m  25 |         if (stored === 'dark' || stored === 'light') {[0m
+[0m  26 |             setThemeState(stored);[0m
+[0m> 27 |             applyTheme(stored);[0m
+[0m     |             ^^^^^^^^^^ `applyTheme` accessed before it is declared[0m
+[0m  28 |         } else {[0m
+[0m  29 |             // Respect system preference on first visit[0m
+[0m  30 |             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;[0m
+[0m[0m
+[0mC:\Users\yourp\Downloads\e-fuel-pos\src\context\ThemeContext.tsx:37:5[0m
+[0m  35 |     }, []);[0m
+[0m  36 |[0m
+[0m> 37 |     const applyTheme = (t: Theme) => {[0m
+[0m     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 38 |         const html = document.documentElement;[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 39 |         if (t === 'dark') {[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 40 |             html.classList.add('dark');[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 41 |         } else {[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 42 |             html.classList.remove('dark');[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 43 |         }[0m
+[0m     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[0m> 44 |     };[0m
+[0m     | ^^^^^^^ `applyTheme` is declared here[0m
+[0m  45 |[0m
+[0m  46 |     const setTheme = (t: Theme) => {[0m
+[0m  47 |         setThemeState(t);  [2mreact-hooks/immutability[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\lib\encryption.ts[24m[0m
+[0m   [2m3:35[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m12:43[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\lib\export.ts[24m[0m
+[0m  [2m2:10[22m  [33mwarning[39m  'TransactionRecord' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m4:37[22m  [31merror[39m    Unexpected any. Specify a different type       [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\employee.ts[24m[0m
+[0m   [2m60:9[22m   [31merror[39m  Unexpected var, use let or const instead  [2mno-var[22m[0m
+[0m  [2m274:46[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m375:40[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\logger.ts[24m[0m
+[0m   [2m9:20[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m10:19[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m23:9[22m   [31merror[39m  Unexpected var, use let or const instead  [2mno-var[22m[0m
+[0m  [2m43:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m44:22[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\storage.ts[24m[0m
+[0m    [2m55:9[22m    [31merror[39m    Unexpected var, use let or const instead    [2mno-var[22m[0m
+[0m    [2m76:44[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m212:46[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m213:45[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m240:44[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m304:52[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m324:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m336:48[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m394:27[22m   [33mwarning[39m  'error' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m396:40[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m495:29[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m501:37[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m515:27[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m522:28[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m527:45[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m534:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m548:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m553:116[22m  [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m595:50[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m649:32[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m666:48[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m745:30[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m747:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m759:42[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m778:47[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m808:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m857:27[22m   [33mwarning[39m  'error' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m866:33[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m911:53[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m925:81[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m962:21[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1003:40[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1014:29[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1035:44[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1039:61[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1040:60[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1058:43[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m1064:32[22m   [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\sync.ts[24m[0m
+[0m   [2m8:14[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m19:55[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\transactionService.ts[24m[0m
+[0m   [2m64:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m100:30[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m137:49[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m141:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m210:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m230:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m260:23[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\services\whatsapp.ts[24m[0m
+[0m  [2m43:38[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m61:47[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4mC:\Users\yourp\Downloads\e-fuel-pos\src\tests\stock-sync-test.ts[24m[0m
+[0m  [2m52:24[22m  [33mwarning[39m  'i' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[31m[1m✖ 171 problems (139 errors, 32 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[31m[1m  3 errors and 0 warnings potentially fixable with the `--fix` option.[22m[39m[0m
+[0m[31m[1m[22m[39m[0m

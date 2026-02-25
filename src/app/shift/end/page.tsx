@@ -16,7 +16,7 @@ export default function EndShiftPage() {
     const [finalCash, setFinalCash] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [successData, setSuccessData] = useState<any>(null); // Success State
+    const [successData, setSuccessData] = useState<any>(null);
 
     useEffect(() => {
         const loadShiftData = async () => {
@@ -63,15 +63,11 @@ export default function EndShiftPage() {
             };
             WhatsAppService.sendShiftReportToOwner(reportData).catch(err => console.error("WA Error:", err));
 
-            // Replace alert with Success UI
             setSuccessData({
                 variance: cashValue - expected,
                 actual: cashValue,
                 expected: expected
             });
-
-            // Optional: Auto redirect after few seconds, or let user click button
-            // setTimeout(() => router.push('/dashboard'), 5000); 
 
         } catch (error: any) {
             alert('Gagal tutup shift: ' + error.message);
@@ -79,30 +75,33 @@ export default function EndShiftPage() {
         }
     };
 
-    if (loading || !user) return <div className="p-8 text-center">Loading Shift Data...</div>;
+    if (loading || !user) return <div className="min-h-screen flex items-center justify-center p-8 page-fade-in" style={{ color: 'var(--text-muted)' }}>Menganalisis Transaksi...</div>;
 
     if (successData) {
         return (
-            <div className="min-h-screen bg-slate-800 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in duration-300">
-                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle size={40} />
+            <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
+                <div className="w-full max-w-md p-8 text-center animate-in fade-in zoom-in duration-300 rounded-3xl shadow-xl" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
+                    <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
+                        <CheckCircle size={48} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Shift Berhasil Ditutup!</h1>
-                    <p className="text-slate-500 mb-6">Laporan telah dikirim ke Owner.</p>
+                    <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Shift Selesai!</h1>
+                    <p className="mb-8 font-medium" style={{ color: 'var(--text-secondary)' }}>Laporan rekap telah sinkron & terkirim.</p>
 
                     <div className="space-y-3 mb-8">
-                        <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <span className="text-sm font-bold text-slate-500">Total Seharusnya</span>
-                            <span className="font-bold text-slate-800">Rp {successData.expected.toLocaleString()}</span>
+                        <div className="flex justify-between items-center p-4 rounded-2xl" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+                            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Total Seharusnya</span>
+                            <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Rp {successData.expected.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <span className="text-sm font-bold text-slate-500">Total Aktual (Laci)</span>
-                            <span className="font-bold text-blue-600">Rp {successData.actual.toLocaleString()}</span>
+                        <div className="flex justify-between items-center p-4 rounded-2xl" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--accent-light)' }}>
+                            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Total Aktual (Laci)</span>
+                            <span className="font-bold text-lg" style={{ color: 'var(--accent)' }}>Rp {successData.actual.toLocaleString()}</span>
                         </div>
-                        <div className={`flex justify-between items-center p-3 rounded-lg ${successData.variance === 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            <span className="text-sm font-bold uppercase">Selisih (Variance)</span>
-                            <span className="font-bold">
+                        <div className="flex justify-between items-center p-4 rounded-2xl" style={{
+                            background: successData.variance === 0 ? 'var(--success-soft)' : 'var(--danger-soft)',
+                            color: successData.variance === 0 ? 'var(--success)' : 'var(--danger)',
+                        }}>
+                            <span className="text-sm font-bold uppercase tracking-wider">Selisih (Variance)</span>
+                            <span className="font-bold text-lg">
                                 {successData.variance > 0 ? '+' : ''} Rp {successData.variance.toLocaleString()}
                             </span>
                         </div>
@@ -110,7 +109,8 @@ export default function EndShiftPage() {
 
                     <button
                         onClick={() => router.push('/dashboard')}
-                        className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition"
+                        className="btn-press w-full font-bold text-white py-4 rounded-2xl transition-all duration-300"
+                        style={{ background: 'var(--text-primary)', color: 'var(--bg-primary)' }}
                     >
                         Kembali ke Dashboard
                     </button>
@@ -124,80 +124,103 @@ export default function EndShiftPage() {
     const variance = currentInput - expectedCash;
 
     return (
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-                <div className="bg-slate-800 p-6 text-white text-center">
-                    <CheckCircle size={48} className="mx-auto mb-4 text-green-400" />
-                    <h1 className="text-2xl font-bold">Tutup Shift Kasir</h1>
-                    <p className="opacity-70 mt-1">
-                        Login: {new Date(shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
+            <div className="w-full max-w-lg page-fade-in">
+                {/* Back Button */}
+                <Link href="/dashboard" className="inline-flex items-center gap-2 font-bold mb-6 transition-colors hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                    <ArrowLeft size={20} /> Kembali ke Dashboard
+                </Link>
 
-                <div className="p-6">
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <p className="text-xs text-slate-500 uppercase font-bold">Modal Awal</p>
-                            <p className="text-lg font-bold text-slate-700">Rp {shift.initial_cash.toLocaleString()}</p>
+                <div className="rounded-3xl shadow-2xl overflow-hidden transition-all duration-300" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
+
+                    {/* Header Banner */}
+                    <div className="p-8 pb-10 text-center relative overflow-hidden">
+                        {/* Background pattern */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--danger) 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
+
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10" style={{ background: 'var(--bg-secondary)', color: 'var(--danger)', border: '1px solid var(--danger-border)' }}>
+                            <CheckCircle size={36} />
                         </div>
-                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                            <p className="text-xs text-blue-500 uppercase font-bold">Penjualan Shift</p>
-                            <p className="text-lg font-bold text-blue-700">+ Rp {totalSales.toLocaleString()}</p>
-                        </div>
+                        <h1 className="text-2xl font-bold relative z-10" style={{ color: 'var(--text-primary)' }}>Tutup Shift Kasir</h1>
+                        <p className="font-medium mt-1 relative z-10" style={{ color: 'var(--text-secondary)' }}>
+                            Sesi dimulai: <span style={{ color: 'var(--text-primary)' }}>{shift?.start_time ? new Date(shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
+                        </p>
                     </div>
 
-                    <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mb-6 flex justify-between items-center">
-                        <span className="text-sm font-bold text-slate-600 uppercase">Total Seharusnya</span>
-                        <span className="text-xl font-bold text-slate-800">Rp {expectedCash.toLocaleString()}</span>
-                    </div>
-
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Total Uang Tunai (Hitung Laci)
-                        </label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-3 text-slate-500 font-bold">Rp</span>
-                            <input
-                                type="number"
-                                required
-                                value={finalCash}
-                                onChange={(e) => setFinalCash(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-lg font-bold text-slate-800"
-                                placeholder="0"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Variance Indicator */}
-                    {currentInput > 0 && (
-                        <div className={`p-3 rounded-lg flex items-center gap-3 mb-6 ${variance < 0 ? 'bg-red-100 text-red-800' :
-                            variance > 0 ? 'bg-lime-100 text-lime-800' :
-                                'bg-green-100 text-green-800'
-                            }`}>
-                            {variance === 0 ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-                            <div>
-                                <p className="text-xs font-bold uppercase">Selisih (Variance)</p>
-                                <p className="font-bold">
-                                    {variance > 0 ? '+' : ''} Rp {variance.toLocaleString()}
-                                </p>
+                    <div className="p-8 pt-0 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                        <div className="grid grid-cols-2 gap-4 mt-8 mb-6">
+                            <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+                                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>Modal Awal</p>
+                                <p className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {(shift?.initial_cash || 0).toLocaleString()}</p>
+                            </div>
+                            <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
+                                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Penjualan Shift</p>
+                                <p className="text-xl font-black" style={{ color: 'var(--accent)' }}>+ Rp {totalSales.toLocaleString()}</p>
                             </div>
                         </div>
-                    )}
 
-                    <button
-                        onClick={handleCloseShift}
-                        disabled={submitting || !finalCash}
-                        className={`w-full py-4 rounded-xl font-bold text-lg text-white transition shadow-lg
-                            ${submitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 hover:shadow-red-200'}
-                        `}
-                    >
-                        {submitting ? 'Menutup Shift...' : 'Tutup Shift & Simpan'}
-                    </button>
+                        <div className="p-5 rounded-2xl mb-8 flex justify-between items-center transition-colors duration-300" style={{ background: 'var(--bg-secondary)', border: '2px dashed var(--border-color)' }}>
+                            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Total Seharusnya</span>
+                            <span className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {expectedCash.toLocaleString()}</span>
+                        </div>
 
-                    <div className="mt-6 text-center">
-                        <Link href="/dashboard" className="text-slate-400 hover:text-slate-600 text-sm inline-flex items-center gap-1">
-                            <ArrowLeft size={14} /> Kembali ke Dashboard
-                        </Link>
+                        <div className="mb-8">
+                            <label className="block text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
+                                Uang Tunai di Laci Kasir (Aktual)
+                            </label>
+                            <div className="relative group">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-lg transition-colors duration-300" style={{ color: 'var(--text-muted)' }}>Rp</span>
+                                <input
+                                    type="number"
+                                    required
+                                    value={finalCash}
+                                    onChange={(e) => setFinalCash(e.target.value)}
+                                    className="w-full pl-14 pr-4 py-4 rounded-2xl outline-none transition-all duration-300 font-black text-2xl"
+                                    style={{
+                                        background: 'var(--bg-secondary)',
+                                        border: '2px solid transparent',
+                                        color: 'var(--text-primary)',
+                                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                                    }}
+                                    placeholder="0"
+                                />
+                                {/* Focus Border glow effect */}
+                                <div className="absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
+                            </div>
+                        </div>
+
+                        {/* Variance Indicator */}
+                        {currentInput > 0 && (
+                            <div className={`p-4 rounded-2xl flex items-center gap-4 mb-8 transition-colors duration-300`} style={{
+                                background: variance === 0 ? 'var(--success-soft)' : 'var(--danger-soft)',
+                                color: variance === 0 ? 'var(--success)' : 'var(--danger)',
+                            }}>
+                                {variance === 0 ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider">Selisih (Variance)</p>
+                                    <p className="text-lg font-black mt-1">
+                                        {variance > 0 ? '+' : ''} Rp {variance.toLocaleString()}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleCloseShift}
+                            disabled={submitting || !finalCash}
+                            className="btn-press w-full font-bold text-lg text-white py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{
+                                background: 'var(--danger)',
+                                boxShadow: '0 8px 25px -5px var(--danger)',
+                                minHeight: 'var(--touch-min)',
+                            }}
+                        >
+                            {submitting ? (
+                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                <>Tutup Shift & Mulai Rekap <CheckCircle size={20} /></>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
