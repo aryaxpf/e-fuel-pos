@@ -143,7 +143,7 @@ export default function EndShiftPage() {
                         </div>
                         <h1 className="text-2xl font-bold relative z-10" style={{ color: 'var(--text-primary)' }}>Tutup Shift Kasir</h1>
                         <p className="font-medium mt-1 relative z-10" style={{ color: 'var(--text-secondary)' }}>
-                            Sesi dimulai: <span style={{ color: 'var(--text-primary)' }}>{new Date(shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                            Sesi dimulai: <span style={{ color: 'var(--text-primary)' }}>{shift?.start_time ? new Date(shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
                         </p>
                     </div>
 
@@ -151,7 +151,7 @@ export default function EndShiftPage() {
                         <div className="grid grid-cols-2 gap-4 mt-8 mb-6">
                             <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>Modal Awal</p>
-                                <p className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {shift.initial_cash.toLocaleString()}</p>
+                                <p className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {(shift?.initial_cash || 0).toLocaleString()}</p>
                             </div>
                             <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Penjualan Shift</p>
