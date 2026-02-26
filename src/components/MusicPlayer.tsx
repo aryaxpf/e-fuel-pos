@@ -70,16 +70,21 @@ export default function MusicPlayer() {
                 width: isMinimized ? 'auto' : '300px'
             }}
         >
-            {/* Visually Hidden Player */}
-            <div className="absolute w-[1px] h-[1px] opacity-0 pointer-events-none overflow-hidden -z-10">
+            {/* Visually Hidden Player but physically large enough to not be auto-paused by YouTube API */}
+            <div className="absolute" style={{ left: '-9999px', top: '-9999px', width: '200px', height: '200px' }}>
                 <Player
                     url={currentTrack.url}
                     playing={isPlaying && isInteractable}
                     volume={volume}
                     muted={isMuted}
                     onEnded={handleEnded}
-                    width="100%"
-                    height="100%"
+                    width="200px"
+                    height="200px"
+                    config={{
+                        youtube: {
+                            playerVars: { origin: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000' }
+                        }
+                    }}
                 />
             </div>
 

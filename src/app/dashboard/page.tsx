@@ -232,6 +232,15 @@ export default function DashboardPage() {
                                     <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Admin</h3>
                                 </div>
                             </Link>
+
+                            <Link href="/audit" className="menu-card group !p-4 flex flex-col items-start justify-start">
+                                <div className="menu-card-icon w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
+                                    <ShieldCheck size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Security Log</h3>
+                                </div>
+                            </Link>
                         </>
                     )}
                 </div>
@@ -457,7 +466,7 @@ export default function DashboardPage() {
             {/* Modals for Menus */}
             {isPosModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setIsPosModalOpen(false)}>
-                    <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }} onClick={e => e.stopPropagation()}>
                         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                             <h3 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Pilih Sistem POS</h3>
                             <button onClick={() => setIsPosModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400">
@@ -490,7 +499,7 @@ export default function DashboardPage() {
 
             {isMgmtModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setIsMgmtModalOpen(false)}>
-                    <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }} onClick={e => e.stopPropagation()}>
                         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                             <h3 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Pilih Manajemen</h3>
                             <button onClick={() => setIsMgmtModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400">
@@ -499,7 +508,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="p-4 flex flex-col gap-3">
                             {user?.role === 'admin' && (
-                                <Link href="/admin/products" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border border-slate-200/50 dark:border-slate-700">
+                                <Link href="/product" className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border border-slate-200/50 dark:border-slate-700">
                                     <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-400">
                                         <ClipboardList size={24} />
                                     </div>

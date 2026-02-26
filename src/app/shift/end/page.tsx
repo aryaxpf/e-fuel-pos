@@ -6,7 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { StorageService } from '../../../services/storage';
 import { ProductService } from '../../../services/productService';
 import { WhatsAppService } from '../../../services/whatsapp';
-import { ArrowLeft, Wallet, Calculator, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Wallet, Calculator, CheckCircle, AlertTriangle, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EndShiftPage() {
@@ -117,6 +117,17 @@ export default function EndShiftPage() {
                         </div>
                     </div>
 
+                    <button
+                        onClick={() => {
+                            const date = new Date().toLocaleString('id-ID');
+                            const text = `*Laporan Shift - Smart POS*\nKasir: ${user.username}\nWaktu: ${date}\n--------------------------------\nKas Awal: Rp ${(shift?.initial_cash || 0).toLocaleString('id-ID')}\nSistem: Rp ${successData.expected.toLocaleString('id-ID')}\nAktual: Rp ${successData.actual.toLocaleString('id-ID')}\nSelisih: ${successData.variance > 0 ? '+' : ''} Rp ${successData.variance.toLocaleString('id-ID')}\n--------------------------------`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                        }}
+                        className="btn-press w-full font-bold text-white py-4 rounded-2xl transition-all duration-300 mb-3 flex items-center justify-center gap-2"
+                        style={{ background: '#25D366' }}
+                    >
+                        <MessageCircle size={20} /> Kirim ke WhatsApp Owner
+                    </button>
                     <button
                         onClick={() => router.push('/dashboard')}
                         className="btn-press w-full font-bold text-white py-4 rounded-2xl transition-all duration-300"

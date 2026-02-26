@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Search, Filter, Ban, RefreshCw, Package, Zap } from 'lucide-react';
+import { ArrowLeft, Clock, Search, Filter, Ban, RefreshCw, Package, Zap, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StorageService } from '../../services/storage';
 import { ProductService } from '../../services/productService';
+import { exportHistoryToExcel } from '../../lib/export';
 import { useRouter } from 'next/navigation';
 
 export default function HistoryPage() {
@@ -122,6 +123,9 @@ export default function HistoryPage() {
                                 style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
                             />
                         </div>
+                        <button onClick={() => exportHistoryToExcel(filtered)} className="p-2 px-4 rounded-xl border hover:opacity-80 transition-opacity flex items-center gap-2 font-bold" style={{ background: 'var(--accent)', borderColor: 'var(--accent)', color: '#fff' }}>
+                            <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Unduh Excel</span>
+                        </button>
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value as any)}

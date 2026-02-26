@@ -6,7 +6,7 @@ import { ArrowLeft, Download, RefreshCw, FileSpreadsheet, Trash2, ShieldAlert, X
 import Link from 'next/link';
 import { StorageService, TransactionRecord, InventoryLog } from '../../services/storage';
 import { ProductService } from '../../services/productService';
-import { exportToExcel } from '../../lib/export';
+import { exportReportsToExcel } from '../../lib/export';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import Toast, { ToastType } from '../../components/Toast';
@@ -371,7 +371,7 @@ export default function ReportsPage() {
     }, [timeRange, rawTransactions, rawProductTransactions, rawInventory, rawProductInventory, rawExpenses, currentShift]);
 
     const handleExportExcel = () => {
-        exportToExcel(unifiedData);
+        exportReportsToExcel(unifiedData);
     };
 
     const handleExportWA = () => {
