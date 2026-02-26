@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function StartShiftPage() {
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, logout } = useAuth();
     const [initialCash, setInitialCash] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -77,9 +77,9 @@ export default function StartShiftPage() {
         <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
             <div className="w-full max-w-md page-fade-in">
                 {/* Back Button */}
-                <Link href="/dashboard" className="inline-flex items-center gap-2 font-bold mb-6 transition-colors hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
-                    <ArrowLeft size={20} /> Kembali ke Dashboard
-                </Link>
+                <button onClick={() => { logout(); router.push('/login'); }} className="inline-flex items-center gap-2 font-bold mb-6 transition-colors hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                    <ArrowLeft size={20} /> Logout Akun
+                </button>
 
                 <div className="rounded-3xl shadow-2xl overflow-hidden transition-all duration-300" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
 

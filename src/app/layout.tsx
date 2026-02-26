@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import ProtectedRoute from '../components/ProtectedRoute';
+import MusicPlayer from '../components/MusicPlayer';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,13 +24,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "E-Fuel POS",
-  description: "Sistem Manajemen Stok & Penjualan Bensin Mini",
+  title: "Smart POS",
+  description: "Sistem Manajemen Bengkel & SPBU Mini",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "E-Fuel POS",
+    title: "Smart POS",
   },
 };
 
@@ -48,6 +49,7 @@ export default function RootLayout({
             <ProtectedRoute>
               {children}
             </ProtectedRoute>
+            <MusicPlayer />
           </AuthProvider>
         </ThemeProvider>
       </body>

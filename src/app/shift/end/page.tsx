@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { StorageService } from '../../../services/storage';
+import { ProductService } from '../../../services/productService';
 import { WhatsAppService } from '../../../services/whatsapp';
 import { ArrowLeft, Wallet, Calculator, CheckCircle, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
@@ -13,6 +14,8 @@ export default function EndShiftPage() {
     const { user } = useAuth();
     const [shift, setShift] = useState<any>(null);
     const [totalSales, setTotalSales] = useState(0);
+    const [fuelSales, setFuelSales] = useState(0);
+    const [prodSales, setProdSales] = useState(0);
     const [finalCash, setFinalCash] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -32,11 +35,18 @@ export default function EndShiftPage() {
 
                 // Calculate Sales since Start
                 const transactions = await StorageService.getTransactions();
-                const salesSinceStart = transactions
-                    .filter(t => new Date(t.timestamp) >= new Date(currentShift.start_time))
-                    .reduce((acc, curr) => acc + curr.nominal, 0);
+                const fuelSalesSinceStart = transactions
+                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time))
+                    .reduce((acc: number, curr: any) => acc + curr.nominal, 0);
 
-                setTotalSales(salesSinceStart);
+                const prodTxs = await ProductService.getProductTransactionsForReports();
+                const prodSalesSinceStart = prodTxs
+                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time))
+                    .reduce((acc: number, curr: any) => acc + curr.total_amount, 0);
+
+                setFuelSales(fuelSalesSinceStart);
+                setProdSales(prodSalesSinceStart);
+                setTotalSales(fuelSalesSinceStart + prodSalesSinceStart);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -156,6 +166,10 @@ export default function EndShiftPage() {
                             <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Penjualan Shift</p>
                                 <p className="text-xl font-black" style={{ color: 'var(--accent)' }}>+ Rp {totalSales.toLocaleString()}</p>
+                                <div className="mt-2 pt-2 border-t text-[11px] font-bold flex flex-col justify-between" style={{ borderColor: 'var(--accent)', color: 'var(--accent)', opacity: 0.8 }}>
+                                    <span>Bensin: Rp {fuelSales.toLocaleString()}</span>
+                                    <span>Barang: Rp {prodSales.toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
 

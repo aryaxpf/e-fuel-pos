@@ -23,18 +23,18 @@ export default function LoginPage() {
             setError(err);
             setLoading(false);
         } else {
-            router.push('/dashboard');
+            router.push('/shift/start'); // User cannot enter dashboard without shift
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500" style={{ background: 'var(--bg-primary)' }}>
-            
+
             {/* Decorative ambient orbs */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none" 
-                 style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', filter: 'blur(100px)' }} />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none" 
-                 style={{ background: 'radial-gradient(circle, var(--success) 0%, transparent 70%)', filter: 'blur(80px)', animationDelay: '2s' }} />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none"
+                style={{ background: 'radial-gradient(circle, var(--accent) 0%, transparent 70%)', filter: 'blur(100px)' }} />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-15 dark:opacity-10 mix-blend-multiply dark:mix-blend-screen animate-pulse pointer-events-none"
+                style={{ background: 'radial-gradient(circle, var(--success) 0%, transparent 70%)', filter: 'blur(80px)', animationDelay: '2s' }} />
 
             <div className="w-full max-w-md relative z-10 page-fade-in">
                 {/* Glass Card */}
@@ -53,8 +53,8 @@ export default function LoginPage() {
                         }}>
                             <Fuel size={36} className="text-white" />
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>E-Fuel POS</h1>
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sign in to start your cashier shift</p>
+                        <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>Smart POS</h1>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sign in</p>
                     </div>
 
                     {/* Form */}
@@ -138,7 +138,7 @@ export default function LoginPage() {
                         SECURE STATION TERMINAL
                     </p>
                     <p className="text-xs mt-1 opacity-70" style={{ color: 'var(--text-muted)' }}>
-                        E-Fuel POS &copy; {new Date().getFullYear()}
+                        Smart POS &copy; {new Date().getFullYear()}
                     </p>
                 </div>
             </div>

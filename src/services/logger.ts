@@ -4,7 +4,7 @@ export interface ActivityLog {
     id: string;
     timestamp: string;
     actor_id: string;
-    action_type: 'LOGIN' | 'LOGOUT' | 'SHIFT_START' | 'SHIFT_END' | 'RESTOCK' | 'VOID_TRANSACTION' | 'SETTINGS_UPDATE';
+    action_type: 'LOGIN' | 'LOGOUT' | 'SHIFT_START' | 'SHIFT_END' | 'RESTOCK' | 'VOID_TRANSACTION' | 'SETTINGS_UPDATE' | 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'RESTOCK_PRODUCT' | 'SELL_PRODUCT' | 'VOID_FUEL_SALE' | 'VOID_PRODUCT_SALE';
     device_id: string;
     before_state?: any;
     after_state?: any;

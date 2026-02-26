@@ -7,6 +7,9 @@ export type Role = 'admin' | 'cashier';
 
 export type Permission =
     | 'CREATE_TRANSACTION'
+    | 'SELL_PRODUCTS'
+    | 'MANAGE_PRODUCTS'
+    | 'RESTOCK_PRODUCTS'
     | 'VOID_TRANSACTION'
     | 'MANAGE_USERS'
     | 'VIEW_REPORTS'
@@ -25,6 +28,9 @@ export type Permission =
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     admin: [
         'CREATE_TRANSACTION',
+        'SELL_PRODUCTS',
+        'MANAGE_PRODUCTS',
+        'RESTOCK_PRODUCTS',
         'VOID_TRANSACTION',
         'MANAGE_USERS',
         'VIEW_REPORTS',
@@ -38,6 +44,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     ],
     cashier: [
         'CREATE_TRANSACTION',
+        'SELL_PRODUCTS',
     ],
 };
 

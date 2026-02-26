@@ -4,6 +4,7 @@ import { SyncService } from './sync';
 import { TransactionSchema, InventorySchema } from '../lib/validation';
 import { LoggerService } from './logger';
 import { decryptData } from '../lib/encryption';
+import { ProductService } from './productService';
 export interface InventoryLog {
     id: string;
     date: string;
@@ -17,6 +18,7 @@ export interface TransactionRecord extends TransactionResult {
     id: string;
     timestamp: string;
     paymentMethod?: 'CASH' | 'DEBT';
+    status?: 'SUCCESS' | 'VOID';
 }
 
 export interface PricingRule {
@@ -246,6 +248,7 @@ export const StorageService = {
                 cost: 0, // Not stored in DB, strictly calculated
                 isSpecialRule: item.is_special_rule,
                 paymentMethod: item.payment_method || 'CASH',
+                status: item.status || 'SUCCESS',
             }));
         }
 
@@ -272,6 +275,7 @@ export const StorageService = {
                 profit: Number(data.profit),
                 cost: 0,
                 isSpecialRule: data.is_special_rule,
+                status: data.status || 'SUCCESS',
             };
         }
 
@@ -317,17 +321,11 @@ export const StorageService = {
 
         if (useLocal) {
             const records = await StorageService.getTransactions();
-            const newRecord: TransactionRecord = {
-                ...result,
-                id: transactionId,
-                timestamp: timestamp,
-                paymentMethod: (result as any).paymentMethod || 'CASH'
-            };
-            records.unshift(newRecord);
+            records.unshift({ ...result, id: transactionId, timestamp, status: 'SUCCESS' } as any);
             localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(records));
 
             if (supabase) {
-                const payload = {
+                SyncService.addToQueue('INSERT_TRANSACTION', {
                     id: transactionId,
                     nominal: result.nominal,
                     liter: result.liter,
@@ -335,12 +333,53 @@ export const StorageService = {
                     is_special_rule: result.isSpecialRule,
                     payment_method: (result as any).paymentMethod || 'CASH',
                     timestamp: timestamp,
-                };
-                SyncService.addToQueue('INSERT_TRANSACTION', payload);
+                });
             }
-            return newRecord;
+
+            return records[0];
         }
         throw new Error("Storage Error");
+    },
+
+    voidTransaction: async (id: string, actor: any) => {
+        const tx = await StorageService.getTransactionById(id);
+        if (!tx) throw new Error("Transaksi tidak ditemukan");
+        if ((tx as any).status === 'VOID') throw new Error("Sudah dibatalkan");
+
+        let useLocal = !supabase;
+
+        if (supabase) {
+            try {
+                const { error: txErr } = await supabase.from('transactions').update({ status: 'VOID' }).eq('id', id);
+                if (txErr) throw txErr;
+
+                await StorageService.addInventoryLog({
+                    type: 'ADJUSTMENT',
+                    volume: tx.liter,
+                    costPerLiter: 0,
+                    notes: `VOID Bensin: ${id}`
+                });
+                await LoggerService.logAction(actor.id, 'VOID_FUEL_SALE', actor.username, { transaction_id: id, amount: tx.nominal });
+            } catch (err) {
+                console.warn(err);
+                useLocal = true;
+            }
+        }
+
+        if (useLocal) {
+            const trxs = await StorageService.getTransactions();
+            const updated = trxs.map(t => t.id === id ? { ...t, status: 'VOID' } : t);
+            localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(updated));
+
+            // Re-add inventory
+            const logs = await StorageService.getInventoryLogs();
+            logs.unshift({ id: generateId(), date: new Date().toISOString(), type: 'ADJUSTMENT', volume: tx.liter, costPerLiter: 0, notes: `VOID Bensin: ${id}` });
+            localStorage.setItem(KEYS.INVENTORY, JSON.stringify(logs));
+
+            if (supabase) {
+                SyncService.addToQueue('UPDATE_TRANSACTION', { id, status: 'VOID' });
+            }
+        }
     },
 
     deleteTransaction: async (id: string, literToRestore: number, nominal: number) => {
@@ -714,6 +753,11 @@ export const StorageService = {
         const debt = {
             customer_id: customerId,
             transaction_id: transactionId,
+            nama_spbu: 'Smart POS',
+            alamat_spbu: 'Alamat Smart POS',
+            telepon_spbu: '081234567890',
+            printer_mac: '',
+            shift_duration_hours: 8,
             amount,
             amount_paid: 0,
             status: 'UNPAID',
@@ -997,10 +1041,14 @@ export const StorageService = {
 
     getTransactionsByHour: async (date = new Date()) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
 
         // Filter transactions for the specified date
         const targetDateString = date.toISOString().split('T')[0];
         const dayTxs = txs.filter((tx: any) =>
+            tx.timestamp.startsWith(targetDateString) && tx.status !== 'VOID'
+        );
+        const dayProdTxs = prodTxs.filter((tx: any) =>
             tx.timestamp.startsWith(targetDateString) && tx.status !== 'VOID'
         );
 
@@ -1019,11 +1067,19 @@ export const StorageService = {
             }
         });
 
+        dayProdTxs.forEach((tx: any) => {
+            const hour = new Date(tx.timestamp).getHours();
+            if (hour >= 0 && hour < 24) {
+                hourlyData[hour].transactions += 1;
+            }
+        });
+
         return hourlyData;
     },
 
     getRevenueAndProfitByDay: async (days = 7) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
         const result = [];
         const today = new Date();
 
@@ -1035,14 +1091,24 @@ export const StorageService = {
             const dayTxs = txs.filter((tx: any) =>
                 tx.timestamp.startsWith(dateStr) && tx.status !== 'VOID'
             );
+            const dayProdTxs = prodTxs.filter((tx: any) =>
+                tx.timestamp.startsWith(dateStr) && tx.status !== 'VOID'
+            );
 
-            const revenue = dayTxs.reduce((sum: number, tx: any) => sum + tx.nominal, 0);
-            const profit = dayTxs.reduce((sum: number, tx: any) => sum + tx.profit, 0);
+            const fuelRevenue = dayTxs.reduce((sum: number, tx: any) => sum + tx.nominal, 0);
+            const fuelProfit = dayTxs.reduce((sum: number, tx: any) => sum + tx.profit, 0);
+
+            const productRevenue = dayProdTxs.reduce((sum: number, tx: any) => sum + tx.total_amount, 0);
+            const productProfit = dayProdTxs.reduce((sum: number, tx: any) => sum + tx.total_profit, 0);
 
             result.push({
                 date: d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
-                revenue,
-                profit
+                revenue: fuelRevenue + productRevenue, // total
+                profit: fuelProfit + productProfit,    // total
+                fuelRevenue,
+                fuelProfit,
+                productRevenue,
+                productProfit
             });
         }
 
@@ -1051,30 +1117,69 @@ export const StorageService = {
 
     getOperatorPerformance: async (hoursBack = 24) => {
         const txs = await StorageService.getTransactions();
+        const prodTxs = await ProductService.getProductTransactionsForReports();
 
         const cutoff = new Date();
         cutoff.setHours(cutoff.getHours() - hoursBack);
 
-        const recentTxs = txs.filter((tx: any) =>
-            new Date(tx.timestamp) >= cutoff
-        );
+        const recentTxs = txs.filter((tx: any) => new Date(tx.timestamp) >= cutoff);
+        const recentProdTxs = prodTxs.filter((tx: any) => new Date(tx.timestamp) >= cutoff);
 
-        const operators: Record<string, { username: string, volume: number, count: number, voids: number }> = {};
+        const operators: Record<string, { username: string, fuelVolume: number, fuelCount: number, fuelVoids: number, productCount: number, productVoids: number, totalCount: number }> = {};
 
         recentTxs.forEach((tx: any) => {
-            const username = tx.actor?.username || 'Unknown';
+            const username = tx.actor?.username || tx.username || 'Unknown';
             if (!operators[username]) {
-                operators[username] = { username, volume: 0, count: 0, voids: 0 };
+                operators[username] = { username, fuelVolume: 0, fuelCount: 0, fuelVoids: 0, productCount: 0, productVoids: 0, totalCount: 0 };
             }
 
             if (tx.status === 'VOID') {
-                operators[username].voids += 1;
+                operators[username].fuelVoids += 1;
             } else {
-                operators[username].volume += tx.liter;
-                operators[username].count += 1;
+                operators[username].fuelVolume += tx.liter;
+                operators[username].fuelCount += 1;
+                operators[username].totalCount += 1;
             }
         });
 
-        return Object.values(operators).sort((a, b) => b.volume - a.volume);
+        recentProdTxs.forEach((tx: any) => {
+            const username = tx.username || 'Unknown';
+            if (!operators[username]) {
+                operators[username] = { username, fuelVolume: 0, fuelCount: 0, fuelVoids: 0, productCount: 0, productVoids: 0, totalCount: 0 };
+            }
+
+            if (tx.status === 'VOID') {
+                operators[username].productVoids += 1;
+            } else {
+                operators[username].productCount += 1;
+                operators[username].totalCount += 1;
+            }
+        });
+
+        return Object.values(operators).sort((a, b) => b.totalCount - a.totalCount);
+    },
+
+    getTopSellingProducts: async (daysBack = 30) => {
+        const prodTxs = await ProductService.getProductTransactionsForReports();
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - daysBack);
+
+        const recentProdTxs = prodTxs.filter((tx: any) => new Date(tx.timestamp) >= cutoff && tx.status !== 'VOID');
+
+        const products: Record<string, { name: string, quantity: number, revenue: number }> = {};
+
+        recentProdTxs.forEach((tx: any) => {
+            tx.items.forEach((item: any) => {
+                if (!products[item.product_id]) {
+                    products[item.product_id] = { name: item.name, quantity: 0, revenue: 0 };
+                }
+                products[item.product_id].quantity += item.quantity;
+                products[item.product_id].revenue += item.total_price;
+            });
+        });
+
+        return Object.values(products)
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10); // Top 10
     }
 };
