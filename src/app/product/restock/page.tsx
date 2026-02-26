@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../../../../components/Navbar';
-import { ProductService, Product } from '../../../../services/productService';
-import { PackageX, PackagePlus, ArrowLeft, Save, Search } from 'lucide-react';
+import Navbar from '../../../components/Navbar';
+import { ProductService, Product } from '../../../services/productService';
+import { ArrowLeft, Save, Plus, Package, PackagePlus, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '../../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Toast, { ToastType } from '../../../../components/Toast';
+import Toast, { ToastType } from '../../../components/Toast';
 
 export default function RestockProductPage() {
     const { user, loading } = useAuth();
@@ -104,7 +104,7 @@ export default function RestockProductPage() {
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
             <main className="container mx-auto p-4 md:p-8 max-w-2xl">
-                <Link href="/admin/products" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 transition">
+                <Link href="/product" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 transition">
                     <ArrowLeft size={20} />
                     Kembali ke Master Barang
                 </Link>

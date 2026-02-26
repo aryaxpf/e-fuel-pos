@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../../../components/Navbar';
-import { ProductService, Product } from '../../../services/productService';
-import { Package, Plus, Search, Edit2, Trash2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import { ProductService, Product } from '../../services/productService';
+import { Settings, Plus, Search, Edit2, Trash2, ArrowLeft, ArrowRightLeft, DollarSign, Package, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Toast, { ToastType } from '../../../components/Toast';
+import Toast, { ToastType } from '../../components/Toast';
 
 interface ProductWithStock extends Product {
     current_stock: number;
@@ -207,7 +207,7 @@ export default function ProductsPage() {
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <Link
-                            href="/admin/products/restock"
+                            href="/product/restock"
                             className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-5 py-3 rounded-xl font-medium transition flex items-center gap-2"
                         >
                             <Package size={20} />

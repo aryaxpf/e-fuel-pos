@@ -4,7 +4,7 @@ const QUEUE_KEY = 'efuel_sync_queue';
 
 export interface SyncItem {
     id: string; // Unique ID for the queue item
-    action: 'INSERT_INVENTORY' | 'INSERT_TRANSACTION' | 'INSERT_EXPENSE' | 'UPDATE_SETTINGS' | 'DELETE_STOCK' | 'DELETE_TRANSACTION' | 'DELETE_EXPENSE' | 'INSERT_EMPLOYEE' | 'UPDATE_EMPLOYEE' | 'DELETE_EMPLOYEE' | 'INSERT_ATTENDANCE' | 'UPDATE_ATTENDANCE' | 'INSERT_PRODUCT' | 'UPDATE_PRODUCT' | 'INSERT_PRODUCT_INVENTORY' | 'INSERT_PRODUCT_TRANSACTION';
+    action: 'INSERT_INVENTORY' | 'INSERT_TRANSACTION' | 'UPDATE_TRANSACTION' | 'INSERT_EXPENSE' | 'UPDATE_SETTINGS' | 'DELETE_STOCK' | 'DELETE_TRANSACTION' | 'DELETE_EXPENSE' | 'INSERT_EMPLOYEE' | 'UPDATE_EMPLOYEE' | 'DELETE_EMPLOYEE' | 'INSERT_ATTENDANCE' | 'UPDATE_ATTENDANCE' | 'INSERT_PRODUCT' | 'UPDATE_PRODUCT' | 'INSERT_PRODUCT_INVENTORY' | 'INSERT_PRODUCT_TRANSACTION' | 'UPDATE_PRODUCT_TRANSACTION';
     payload: any;
     timestamp: number;
     retryCount: number;
@@ -64,6 +64,10 @@ export const SyncService = {
                     case 'INSERT_TRANSACTION':
                         const { error: err2 } = await supabase.from('transactions').insert(item.payload);
                         error = err2;
+                        break;
+                    case 'UPDATE_TRANSACTION':
+                        const { error: err_update_transaction } = await supabase.from('transactions').update({ status: item.payload.status }).eq('id', item.payload.id);
+                        error = err_update_transaction;
                         break;
                     case 'INSERT_EXPENSE':
                         const { error: err3 } = await supabase.from('expenses').insert(item.payload);

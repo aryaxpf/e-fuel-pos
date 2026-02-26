@@ -297,5 +297,34 @@ export const ProductService = {
             logs = logs.filter((l: any) => new Date(l.created_at) >= startDate && new Date(l.created_at) <= endDate);
         }
         return logs;
+    },
+
+    voidProductTransaction: async (id: string, actor: { id: string, username: string, role: string }) => {
+        requirePermission((actor.role || 'cashier') as Role, 'SELL_PRODUCTS');
+
+        const trxs = await ProductService.getProductTransactionsForReports();
+        const tx = trxs.find((t: any) => t.id === id);
+        if (!tx) throw new Error("Transaksi barang tidak ditemukan");
+        if (tx.status === 'VOID') throw new Error("Sudah dibatalkan");
+
+        if (supabase) {
+            const { error: txErr } = await supabase.from('product_transactions').update({ status: 'VOID' }).eq('id', id);
+            if (txErr) throw txErr;
+
+            for (const item of tx.items) {
+                await ProductService.restockProduct(item.product_id, item.qty, item.buy_price, `VOID Barang: ${id}`, { ...actor, role: 'admin' as Role });
+            }
+            await LoggerService.logAction(actor.id, 'VOID_PRODUCT_SALE', actor.username, { transaction_id: id, total_amount: tx.total_amount });
+            return;
+        }
+
+        const updated = trxs.map((t: any) => t.id === id ? { ...t, status: 'VOID' } : t);
+        localStorage.setItem(KEYS.PRODUCT_TRANSACTIONS, JSON.stringify(updated));
+
+        // Loop and add to queue inside restock
+        for (const item of tx.items) {
+            await ProductService.restockProduct(item.product_id, item.qty, item.buy_price, `VOID Barang: ${id}`, { ...actor, role: 'admin' as Role });
+        }
+        SyncService.addToQueue('UPDATE_PRODUCT_TRANSACTION', { id, status: 'VOID' });
     }
 };

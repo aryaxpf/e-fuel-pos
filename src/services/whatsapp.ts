@@ -9,7 +9,7 @@ export const WhatsAppService = {
     // Generate Receipt Message
     generateReceiptMessage: async (transaction: TransactionRecord) => {
         const settings = await StorageService.getStoreSettings();
-        const storeName = settings?.storeName || 'E-Fuel POS';
+        const storeName = settings?.storeName || 'Smart POS';
         const date = new Date(transaction.timestamp).toLocaleString('id-ID');
 
         let message = `*${storeName}*\n`;
@@ -65,7 +65,7 @@ export const WhatsAppService = {
             return;
         }
 
-        const message = WhatsAppService.generateShiftReport(shiftData, settings.storeName || 'E-Fuel POS');
+        const message = WhatsAppService.generateShiftReport(shiftData, settings.storeName || 'Smart POS');
 
         let target = settings.ownerPhone.replace(/\D/g, '');
         if (target.startsWith('0')) {

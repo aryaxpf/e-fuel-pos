@@ -23,7 +23,7 @@ export default function LoginPage() {
             setError(err);
             setLoading(false);
         } else {
-            router.push('/dashboard');
+            router.push('/shift/start'); // User cannot enter dashboard without shift
         }
     };
 
@@ -54,7 +54,7 @@ export default function LoginPage() {
                             <Fuel size={36} className="text-white" />
                         </div>
                         <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-primary)' }}>Smart POS</h1>
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sign in to start your cashier shift</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Sign in</p>
                     </div>
 
                     {/* Form */}
