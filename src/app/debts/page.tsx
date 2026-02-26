@@ -53,6 +53,7 @@ export default function DebtsPage() {
 
         try {
             await StorageService.payDebt(selectedDebt.id, amount);
+            await StorageService.logAudit(user?.id || 'unknown', user?.username || 'unknown', 'PAY_DEBT', { debtId: selectedDebt.id, amount: amount });
             setToast({ message: 'Pembayaran hutang berhasil dicatat!', type: 'success' });
             setPaymentModalOpen(false);
             setPaymentAmount('');

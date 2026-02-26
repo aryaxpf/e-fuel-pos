@@ -36,17 +36,22 @@ export default function EndShiftPage() {
                 // Calculate Sales since Start
                 const transactions = await StorageService.getTransactions();
                 const fuelSalesSinceStart = transactions
-                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time))
+                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time) && t.status !== 'VOID' && t.paymentMethod !== 'DEBT' && t.payment_method !== 'DEBT')
                     .reduce((acc: number, curr: any) => acc + curr.nominal, 0);
 
                 const prodTxs = await ProductService.getProductTransactionsForReports();
                 const prodSalesSinceStart = prodTxs
-                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time))
+                    .filter((t: any) => new Date(t.timestamp) >= new Date(currentShift.start_time) && t.status !== 'VOID' && t.payment_method !== 'DEBT' && t.paymentMethod !== 'DEBT')
                     .reduce((acc: number, curr: any) => acc + curr.total_amount, 0);
+
+                const audits = await StorageService.getAuditLogs();
+                const paidKasbonSinceStart = audits
+                    .filter((a: any) => a.action === 'PAY_DEBT' && new Date(a.created_at) >= new Date(currentShift.start_time))
+                    .reduce((acc: number, curr: any) => acc + (curr.details?.amount || 0), 0);
 
                 setFuelSales(fuelSalesSinceStart);
                 setProdSales(prodSalesSinceStart);
-                setTotalSales(fuelSalesSinceStart + prodSalesSinceStart);
+                setTotalSales(fuelSalesSinceStart + prodSalesSinceStart + paidKasbonSinceStart);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -176,77 +181,77 @@ export default function EndShiftPage() {
                             </div>
                             <div className="p-5 rounded-2xl transition-colors duration-300" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--accent)' }}>Penjualan Shift</p>
-                                <p className="text-xl font-black" style={{ color: 'var(--accent)' }}>+ Rp {totalSales.toLocaleString()}</p>
                                 <div className="mt-2 pt-2 border-t text-[11px] font-bold flex flex-col justify-between" style={{ borderColor: 'var(--accent)', color: 'var(--accent)', opacity: 0.8 }}>
                                     <span>Bensin: Rp {fuelSales.toLocaleString()}</span>
                                     <span>Barang: Rp {prodSales.toLocaleString()}</span>
+                                    <span>Pelunasan Kasbon: Rp {(totalSales - fuelSales - prodSales).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="p-5 rounded-2xl mb-8 flex justify-between items-center transition-colors duration-300" style={{ background: 'var(--bg-secondary)', border: '2px dashed var(--border-color)' }}>
-                            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Total Seharusnya</span>
-                            <span className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {expectedCash.toLocaleString()}</span>
-                        </div>
-
-                        <div className="mb-8">
-                            <label className="block text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-                                Uang Tunai di Laci Kasir (Aktual)
-                            </label>
-                            <div className="relative group">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-lg transition-colors duration-300" style={{ color: 'var(--text-muted)' }}>Rp</span>
-                                <input
-                                    type="number"
-                                    required
-                                    value={finalCash}
-                                    onChange={(e) => setFinalCash(e.target.value)}
-                                    className="w-full pl-14 pr-4 py-4 rounded-2xl outline-none transition-all duration-300 font-black text-2xl"
-                                    style={{
-                                        background: 'var(--bg-secondary)',
-                                        border: '2px solid transparent',
-                                        color: 'var(--text-primary)',
-                                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-                                    }}
-                                    placeholder="0"
-                                />
-                                {/* Focus Border glow effect */}
-                                <div className="absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
-                            </div>
-                        </div>
-
-                        {/* Variance Indicator */}
-                        {currentInput > 0 && (
-                            <div className={`p-4 rounded-2xl flex items-center gap-4 mb-8 transition-colors duration-300`} style={{
-                                background: variance === 0 ? 'var(--success-soft)' : 'var(--danger-soft)',
-                                color: variance === 0 ? 'var(--success)' : 'var(--danger)',
-                            }}>
-                                {variance === 0 ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
-                                <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider">Selisih (Variance)</p>
-                                    <p className="text-lg font-black mt-1">
-                                        {variance > 0 ? '+' : ''} Rp {variance.toLocaleString()}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={handleCloseShift}
-                            disabled={submitting || !finalCash}
-                            className="btn-press w-full font-bold text-lg text-white py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                            style={{
-                                background: 'var(--danger)',
-                                boxShadow: '0 8px 25px -5px var(--danger)',
-                                minHeight: 'var(--touch-min)',
-                            }}
-                        >
-                            {submitting ? (
-                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                                <>Tutup Shift & Mulai Rekap <CheckCircle size={20} /></>
-                            )}
-                        </button>
                     </div>
+
+                    <div className="p-5 rounded-2xl mb-8 flex justify-between items-center transition-colors duration-300" style={{ background: 'var(--bg-secondary)', border: '2px dashed var(--border-color)' }}>
+                        <span className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Total Seharusnya</span>
+                        <span className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>Rp {expectedCash.toLocaleString()}</span>
+                    </div>
+
+                    <div className="mb-8">
+                        <label className="block text-sm font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
+                            Uang Tunai di Laci Kasir (Aktual)
+                        </label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-lg transition-colors duration-300" style={{ color: 'var(--text-muted)' }}>Rp</span>
+                            <input
+                                type="number"
+                                required
+                                value={finalCash}
+                                onChange={(e) => setFinalCash(e.target.value)}
+                                className="w-full pl-14 pr-4 py-4 rounded-2xl outline-none transition-all duration-300 font-black text-2xl"
+                                style={{
+                                    background: 'var(--bg-secondary)',
+                                    border: '2px solid transparent',
+                                    color: 'var(--text-primary)',
+                                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                                }}
+                                placeholder="0"
+                            />
+                            {/* Focus Border glow effect */}
+                            <div className="absolute inset-0 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ border: '2px solid var(--accent)' }}></div>
+                        </div>
+                    </div>
+
+                    {/* Variance Indicator */}
+                    {currentInput > 0 && (
+                        <div className={`p-4 rounded-2xl flex items-center gap-4 mb-8 transition-colors duration-300`} style={{
+                            background: variance === 0 ? 'var(--success-soft)' : 'var(--danger-soft)',
+                            color: variance === 0 ? 'var(--success)' : 'var(--danger)',
+                        }}>
+                            {variance === 0 ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider">Selisih (Variance)</p>
+                                <p className="text-lg font-black mt-1">
+                                    {variance > 0 ? '+' : ''} Rp {variance.toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleCloseShift}
+                        disabled={submitting || !finalCash}
+                        className="btn-press w-full font-bold text-lg text-white py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                        style={{
+                            background: 'var(--danger)',
+                            boxShadow: '0 8px 25px -5px var(--danger)',
+                            minHeight: 'var(--touch-min)',
+                        }}
+                    >
+                        {submitting ? (
+                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            <>Tutup Shift & Mulai Rekap <CheckCircle size={20} /></>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>

@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import ProtectedRoute from '../components/ProtectedRoute';
-import MusicPlayer from '../components/MusicPlayer';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +48,6 @@ export default function RootLayout({
             <ProtectedRoute>
               {children}
             </ProtectedRoute>
-            <MusicPlayer />
           </AuthProvider>
         </ThemeProvider>
       </body>

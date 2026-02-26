@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     Fuel, ArrowRightLeft, ClipboardList, Package, BarChart3,
     Settings, ShieldCheck, Wallet, Users, AlertTriangle, Zap,
-    TrendingUp, Activity, RefreshCw, Clock, X, CreditCard
+    TrendingUp, Activity, RefreshCw, Clock, X, CreditCard, CalendarDays
 } from 'lucide-react';
 import { StorageService } from '../../services/storage';
 import { SyncService } from '../../services/sync';
@@ -217,7 +217,16 @@ export default function DashboardPage() {
                             <Clock size={22} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Riwayat</h3>
+                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Riwayat Trx</h3>
+                        </div>
+                    </Link>
+
+                    <Link href="/shift/history" className="menu-card group !p-4 flex flex-col items-start justify-start">
+                        <div className="menu-card-icon w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                            <CalendarDays size={22} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Riwayat Shift</h3>
                         </div>
                     </Link>
 

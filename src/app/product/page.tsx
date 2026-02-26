@@ -194,7 +194,7 @@ export default function ProductsPage() {
             <main className="container mx-auto p-4 md:p-8 max-w-6xl pb-24">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
-                        <Link href="/admin" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-2 transition">
+                        <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-2 transition">
                             <ArrowLeft size={20} />
                             Kembali ke Dashboard
                         </Link>
