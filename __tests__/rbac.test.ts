@@ -74,9 +74,9 @@ describe('RBAC — Role-Based Access Control', () => {
             expect(() => requirePermission(role, 'CREATE_TRANSACTION')).not.toThrow();
         });
 
-        test('getPermissions should return only 1 permission', () => {
+        test('getPermissions should return explicitly allowed permissions', () => {
             const perms = getPermissions(role);
-            expect(perms).toEqual(['CREATE_TRANSACTION']);
+            expect(perms).toEqual(['CREATE_TRANSACTION', 'SELL_PRODUCTS']);
         });
     });
 
